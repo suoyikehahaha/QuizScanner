@@ -1,12 +1,41 @@
-# QuizScanner — darmowy system quizowy z odczytem kart z kamery
+<p align="center">
+  <img src="assets/logo.svg" width="130" alt="QuizScanner">
+</p>
 
-Pełna alternatywa dla Plickers: uczniowie odpowiadają, podnosząc wydrukowane
-karty z markerami **ArUco**, a kamera odczytuje wszystkie odpowiedzi naraz.
-Do tego panel nauczyciela, widok na tablicę/rzutnik (własny motyw „Scan") i
-edytor pytań. Całość działa **offline**, na Windows i Linux, bez kont i limitów.
+<h1 align="center">QuizScanner</h1>
 
-Zbudowane wyłącznie na bibliotece standardowej Pythona + OpenCV / NumPy /
-Pillow — **bez Flask i bez żadnych instalacji**, jeśli masz już te trzy pakiety.
+<p align="center">
+  <b>Darmowy system quizowy z odczytem odpowiedzi z kamery.</b><br>
+  Uczniowie podnoszą wydrukowane karty z markerami ArUco, a kamera odczytuje
+  wszystkie odpowiedzi naraz — otwarta alternatywa dla Plickers.
+</p>
+
+<p align="center">
+  <img alt="wersja" src="https://img.shields.io/badge/wersja-1.2.0-e2603f">
+  <img alt="platforma" src="https://img.shields.io/badge/platforma-Windows%20%7C%20Linux%20%7C%20macOS-2f9fb3">
+  <img alt="python" src="https://img.shields.io/badge/Python-3.10%2B-4faa6a">
+  <img alt="licencja" src="https://img.shields.io/badge/licencja-MIT-8a7bef">
+  <img alt="serwer" src="https://img.shields.io/badge/serwer-czysty%20stdlib%20bez%20Flask-e8a13c">
+</p>
+
+---
+
+## ✨ Funkcje
+
+- 📷 **Odczyt z kamery** — jeden kadr wykrywa całą klasę naraz (markery ArUco).
+- 🖥️ **Tablica na rzutnik** — własny motyw „Scan": pytanie, timer, rozkład odpowiedzi, podium.
+- ✏️ **Edytor pytań** — quizy, odpowiedzi, punktacja i lista uczniów w przeglądarce.
+- 🖨️ **Karty do druku** — gotowy PDF jednym kliknięciem (także z `.exe`).
+- 🏆 **Punktacja i ranking** — stała albo „za szybkość" (przełącznik w panelu).
+- 🔌 **Offline, bez kont i limitów** — serwer na czystej bibliotece Pythona (bez Flask).
+- 🪟 **Jeden plik `.exe`** na Windows — pobierasz i klikasz, bez instalowania Pythona.
+
+## 📑 Spis treści
+
+[Jak to działa](#jak-to-działa) · [Instalacja](#instalacja) ·
+[Szybki start](#szybki-start-ze-źródeł) · [Widoki](#trzy-widoki-adresy) ·
+[Sterowanie](#sterowanie-quizem-panel-nauczyciela) ·
+[Wskazówki](#konfiguracja-i-wskazówki) · [Integracja](#integracja-we-własnym-kodzie)
 
 ## Jak to działa
 

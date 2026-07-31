@@ -75,6 +75,9 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .badge-C { background: var(--c); }
 .badge-D { background: var(--d); }
 
+/* Logo w naglowku */
+.brand-logo { height: 28px; width: 28px; display: inline-block; vertical-align: middle; }
+
 /* Narozniki "skanera" — dekoracyjna ramka */
 .scan-frame { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 .scan-frame i {

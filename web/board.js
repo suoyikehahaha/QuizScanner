@@ -59,6 +59,7 @@ function renderQuestion(st) {
 function renderIdle(st) {
   if (!st.question) {
     return `<div class="center-screen">
+      <img class="idle-logo" src="/static/logo.svg" alt="">
       <div class="kicker">QuizScanner</div>
       <h1>${esc(st.quiz_title || "Gotowi do startu")}</h1>
       <p>Wczytaj quiz w panelu nauczyciela</p>

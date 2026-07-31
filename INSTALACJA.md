@@ -11,7 +11,7 @@ pierwszego quizu. Wybierz swój system.
 1. Wejdź na stronę **Releases** repozytorium:
    `https://github.com/PiotrKajor/QuizScanner/releases`
 2. W najnowszym wydaniu, w sekcji **Assets**, kliknij plik
-   **`QuizScanner-v…​.exe`** (nazwa zawiera numer wersji, np. `QuizScanner-v1.1.0.exe`).
+   **`QuizScanner-v…​.exe`** (nazwa zawiera numer wersji, np. `QuizScanner-v1.2.0.exe`).
 3. Plik (~67 MB) trafi do folderu **Pobrane**.
 
 > Repozytorium jest prywatne — pobrać może tylko zalogowany właściciel konta.
