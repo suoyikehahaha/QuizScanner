@@ -12,8 +12,19 @@ Fazy:
   podium   -- ranking koncowy
 """
 
+import random
 import threading
 import time
+
+DEFAULT_QUIZ_SETTINGS = {
+    "default_time": 20,        # domyslny czas nowego pytania (s)
+    "default_points": 1000,    # domyslne punkty nowego pytania
+    "shuffle_questions": False,
+    "shuffle_answers": False,
+    "show_distribution": True,  # slupki rozkladu odpowiedzi przy wyniku
+    "auto_reveal_s": 6,        # tryb auto: jak dlugo pokazywac wynik
+    "auto_gap_s": 3,           # tryb auto: przerwa przed kolejnym pytaniem
+}
 
 PHASE_IDLE = "idle"
 PHASE_QUESTION = "question"
@@ -38,9 +49,24 @@ class QuizSession:
         self.scores = {}          # id -> suma punktow
         self.awarded = False      # zabezpieczenie przed podwojnym liczeniem
         self.history = []         # wyniki per pytanie (do eksportu)
-        self.speed_bonus = False  # False = punkty stale; True = szybciej wiecej (styl Kahoot)
+        self.speed_bonus = False  # False = punkty stale; True = szybciej wiecej
+        self.only_known = True    # ignoruj ID spoza listy uczniow
+        self.order = []           # kolejnosc pytan (moze byc losowa)
+        self.perm = [0, 1, 2, 3]  # kolejnosc odpowiedzi w biezacym pytaniu
+
+        # Tryb automatyczny: quiz sam odslania wynik i przechodzi dalej.
+        self.auto_mode = False
+        self._auto_thread = None
+        self._auto_stop = threading.Event()
+        self._auto_at = None      # znacznik czasu nastepnego przejscia
 
     # ---------- konfiguracja ----------
+    def settings(self):
+        """Ustawienia quizu z bezpiecznymi wartosciami domyslnymi."""
+        s = dict(DEFAULT_QUIZ_SETTINGS)
+        s.update(self.quiz.get("settings") or {})
+        return s
+
     def load_quiz(self, quiz, name=None):
         with self.lock:
             self.quiz = quiz
@@ -49,7 +75,15 @@ class QuizSession:
             self.phase = PHASE_IDLE
             self.scores = {}
             self.history = []
+            self._build_order()
             self._reset_question_state()
+
+    def _build_order(self):
+        """Ustala kolejnosc pytan (opcjonalnie losowa)."""
+        n = len(self.quiz.get("questions", []))
+        self.order = list(range(n))
+        if self.settings().get("shuffle_questions"):
+            random.shuffle(self.order)
 
     def set_roster(self, roster):
         with self.lock:
@@ -59,6 +93,15 @@ class QuizSession:
         with self.lock:
             self.speed_bonus = bool(value)
 
+    def set_only_known(self, value):
+        with self.lock:
+            self.only_known = bool(value)
+
+    def set_auto_mode(self, value):
+        with self.lock:
+            self.auto_mode = bool(value)
+            self._auto_at = None
+
     # ---------- przeplyw pytania ----------
     def _reset_question_state(self):
         self.answers = {}
@@ -66,10 +109,42 @@ class QuizSession:
         self.q_start = None
         self.q_end = None
         self.awarded = False
+        self._set_answer_perm()
+
+    def _set_answer_perm(self):
+        """Ustala kolejnosc wyswietlania odpowiedzi (opcjonalnie losowa).
+
+        perm[i] = ktora oryginalna odpowiedz pokazujemy na pozycji i.
+        Losowanie jest ustalane raz na pytanie, zeby tablica nie migotala.
+        """
+        self.perm = [0, 1, 2, 3]
+        if self.settings().get("shuffle_answers"):
+            random.shuffle(self.perm)
+
+    def displayed_answers(self, q):
+        """Odpowiedzi w kolejnosci pokazywanej uczniom."""
+        src = list(q.get("answers", ["", "", "", ""]))
+        src += [""] * (4 - len(src))
+        return [src[i] for i in self.perm]
+
+    def displayed_correct(self, q):
+        """Indeks poprawnej odpowiedzi PO ewentualnym przetasowaniu."""
+        c = q.get("correct", None)
+        if not isinstance(c, int) or not (0 <= c < 4):
+            return None
+        try:
+            return self.perm.index(c)
+        except ValueError:
+            return c
 
     def current_question(self):
-        if 0 <= self.index < len(self.quiz["questions"]):
-            return self.quiz["questions"][self.index]
+        qs = self.quiz.get("questions", [])
+        if not self.order or len(self.order) != len(qs):
+            self._build_order()
+        if 0 <= self.index < len(self.order):
+            real = self.order[self.index]
+            if 0 <= real < len(qs):
+                return qs[real]
         return None
 
     def start_question(self):
@@ -93,6 +168,10 @@ class QuizSession:
                 return  # czas minal -> zamrazamy odpowiedzi
             now = time.time()
             for mid, ans in confirmed.items():
+                # Ochrona przed przypadkowymi wykryciami: przyjmuj tylko ID,
+                # ktore faktycznie sa na liscie uczniow.
+                if self.only_known and self.roster and mid not in self.roster:
+                    continue
                 if self.answers.get(mid) != ans:
                     self.answers[mid] = ans
                     self.answer_time[mid] = now
@@ -113,7 +192,9 @@ class QuizSession:
             self.phase = PHASE_REVEAL
 
     def _award(self, q):
-        correct = q.get("correct", None)
+        # Uczniowie odpowiadaja litera z TABLICY, wiec liczy sie pozycja
+        # po ewentualnym przetasowaniu odpowiedzi.
+        correct = self.displayed_correct(q)
         base = int(q.get("points", 1000) or 0)
         t = float(q.get("time", 20) or 20)
         letter = LETTERS[correct] if isinstance(correct, int) and 0 <= correct < 4 else None
@@ -165,6 +246,72 @@ class QuizSession:
             self.phase = PHASE_IDLE
             self._reset_question_state()
 
+    # Skroty uzywane przez petle automatyczna (lock jest reentrantny).
+    def _do_reveal(self):
+        self.reveal()
+
+    def _do_next(self):
+        self.next_question()
+
+    def _do_start(self):
+        self.start_question()
+
+    # ---------- tryb automatyczny ----------
+    def start_auto_engine(self):
+        """Uruchamia watek prowadzacy quiz samodzielnie (gdy auto_mode=True)."""
+        if self._auto_thread and self._auto_thread.is_alive():
+            return
+        self._auto_stop.clear()
+        self._auto_thread = threading.Thread(target=self._auto_loop, daemon=True)
+        self._auto_thread.start()
+
+    def stop_auto_engine(self):
+        self._auto_stop.set()
+
+    def _auto_loop(self):
+        while not self._auto_stop.wait(0.2):
+            try:
+                self._auto_tick()
+            except Exception:
+                pass  # tryb auto nigdy nie moze wywrocic aplikacji
+
+    def _auto_tick(self):
+        with self.lock:
+            if not self.auto_mode or self.phase == PHASE_PODIUM:
+                self._auto_at = None
+                return
+            st = self.settings()
+            now = time.time()
+
+            if self.phase == PHASE_QUESTION:
+                # Czas pytania minal -> pokaz wynik.
+                if self.q_end and now >= self.q_end:
+                    self._do_reveal()
+                    self._auto_at = now + float(st.get("auto_reveal_s", 6) or 0)
+                return
+
+            if self.phase == PHASE_REVEAL:
+                # Po pokazaniu wyniku -> nastepne pytanie (lub podium).
+                if self._auto_at and now >= self._auto_at:
+                    self._do_next()
+                    self._auto_at = (now + float(st.get("auto_gap_s", 3) or 0)
+                                     if self.phase != PHASE_PODIUM else None)
+                return
+
+            if self.phase == PHASE_IDLE:
+                # Krotka przerwa miedzy pytaniami, potem start kolejnego.
+                if self._auto_at is None:
+                    self._auto_at = now + float(st.get("auto_gap_s", 3) or 0)
+                elif now >= self._auto_at:
+                    self._do_start()
+                    self._auto_at = None
+
+    def auto_next_in(self):
+        """Ile sekund do automatycznego przejscia (None, gdy nie dotyczy)."""
+        if self.auto_mode and self._auto_at:
+            return max(0.0, self._auto_at - time.time())
+        return None
+
     def leaderboard(self, top=None):
         items = sorted(self.scores.items(), key=lambda kv: kv[1], reverse=True)
         board = [{"id": mid, "name": self.roster.get(mid, f"#{mid}"), "score": sc}
@@ -195,16 +342,21 @@ class QuizSession:
                 "distribution": dist,
                 "question": None,
                 "leaderboard": self.leaderboard(top=10),
+                "auto_mode": self.auto_mode,
+                "auto_next_in": (round(self.auto_next_in(), 1)
+                                 if self.auto_next_in() is not None else None),
+                "show_distribution": bool(self.settings().get("show_distribution", True)),
             }
             if q:
                 qd = {
                     "text": q.get("text", ""),
-                    "answers": q.get("answers", ["", "", "", ""]),
+                    "answers": self.displayed_answers(q),
                     "time": q.get("time", 20),
                     "points": q.get("points", 1000),
+                    "media": q.get("media") or None,
                 }
                 if full or self.phase == PHASE_REVEAL:
-                    qd["correct"] = q.get("correct", None)
+                    qd["correct"] = self.displayed_correct(q)
                 st["question"] = qd
             if full:
                 st["students"] = {
@@ -213,4 +365,5 @@ class QuizSession:
                 }
                 st["scores"] = {str(k): v for k, v in self.scores.items()}
                 st["speed_bonus"] = self.speed_bonus
+                st["only_known"] = self.only_known
             return st

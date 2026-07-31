@@ -62,6 +62,24 @@ textarea.text { min-height: 56px; resize: vertical; }
 .add-q { border: 2px dashed var(--accent); background: var(--accent-soft); color: var(--accent-2);
   width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; }
 
+.lang-sel { font: inherit; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--ink-line); background: var(--ink-2); color: var(--ink-text); }
+.side hr { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
+.panel-h { margin: 0 0 12px; font-size: 12px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .1em; font-weight: 800; }
+.field.mt { margin-top: 14px; }
+
+/* ustawienia quizu */
+.set-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.set-checks { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; }
+.chk { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+.chk input { width: 17px; height: 17px; accent-color: var(--accent); }
+
+/* media w pytaniu */
+.media-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mprev { height: 74px; border-radius: 8px; border: 1px solid var(--line);
+  background: #000; object-fit: cover; }
+
 .roster-table { width: 100%; border-collapse: collapse; }
 .roster-table th, .roster-table td { padding: 8px; border-bottom: 1px solid var(--line); text-align: left; }
 .roster-table th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }

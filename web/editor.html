@@ -10,66 +10,97 @@
 </head>
 <body class="editor">
   <div class="ed-top">
-    <span class="brand"><img class="brand-logo" src="/static/logo.svg" alt="">QuizScanner · Edytor</span>
+    <span class="brand"><img class="brand-logo" src="/static/logo.svg" alt="">QuizScanner</span>
     <div class="tabs">
-      <button class="tab active" id="tabQuiz">Quizy</button>
-      <button class="tab" id="tabRoster">Uczniowie</button>
+      <button class="tab active" id="tabQuiz" data-i18n="e_tab_quiz"></button>
+      <button class="tab" id="tabRoster" data-i18n="e_tab_roster"></button>
     </div>
     <div class="spacer"></div>
-    <button class="btn-ghost" id="toTeacher">← Panel nauczyciela</button>
+    <select id="langSel" class="lang-sel">
+      <option value="pl">🇵🇱 Polski</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
+    <button class="btn-ghost" id="toTeacher" data-i18n="e_to_teacher"></button>
   </div>
 
   <!-- ZAKLADKA: QUIZY -->
   <div class="ed-body" id="quizView">
     <div class="side">
-      <h3>Quizy</h3>
+      <h3 data-i18n="e_quizzes"></h3>
       <ul class="qlist" id="quizList"></ul>
-      <button class="btn-primary" id="newQuiz" style="width:100%">+ Nowy quiz</button>
+      <button class="btn-primary" id="newQuiz" style="width:100%" data-i18n="e_new_quiz"></button>
+      <hr>
+      <button class="btn-ghost" id="importBtn" style="width:100%" data-i18n="e_import_file"></button>
+      <input type="file" id="importFile" accept=".quiz,.json,application/json" hidden>
+      <p class="muted" data-i18n="e_file_hint"></p>
     </div>
 
     <div class="main">
       <div class="panel">
-        <label class="field">Tytuł quizu</label>
-        <input class="text" id="quizTitle" placeholder="np. Powtórka z historii">
+        <label class="field" data-i18n="e_quiz_title"></label>
+        <input class="text" id="quizTitle" data-i18n-ph="e_quiz_title_ph">
         <div class="meta-row" style="margin-top:12px">
-          <button class="btn-ok" id="saveQuiz">💾 Zapisz</button>
-          <button class="btn-ghost" id="dupQuiz">⧉ Duplikuj</button>
-          <button class="btn-danger" id="delQuiz">🗑 Usuń</button>
+          <button class="btn-ok" id="saveQuiz" data-i18n="e_save"></button>
+          <button class="btn-ghost" id="dupQuiz" data-i18n="e_duplicate"></button>
+          <button class="btn-ghost" id="exportQuiz" data-i18n="e_export_file"></button>
+          <button class="btn-danger" id="delQuiz" data-i18n="e_delete"></button>
           <span class="muted" id="editingName" style="align-self:center"></span>
         </div>
       </div>
 
+      <!-- Ustawienia quizu -->
+      <div class="panel">
+        <h3 class="panel-h" data-i18n="s_quiz_settings"></h3>
+        <div class="set-grid">
+          <div><label class="field" data-i18n="s_default_time"></label>
+            <input class="text" type="number" min="0" id="setTime"></div>
+          <div><label class="field" data-i18n="s_default_points"></label>
+            <input class="text" type="number" min="0" step="100" id="setPoints"></div>
+          <div><label class="field" data-i18n="s_auto_reveal_s"></label>
+            <input class="text" type="number" min="0" id="setReveal"></div>
+          <div><label class="field" data-i18n="s_auto_gap_s"></label>
+            <input class="text" type="number" min="0" id="setGap"></div>
+        </div>
+        <div class="set-checks">
+          <label class="chk"><input type="checkbox" id="setShuffleQ"><span data-i18n="s_shuffle_q"></span></label>
+          <label class="chk"><input type="checkbox" id="setShuffleA"><span data-i18n="s_shuffle_a"></span></label>
+          <label class="chk"><input type="checkbox" id="setShowDist"><span data-i18n="s_show_dist"></span></label>
+        </div>
+        <button class="btn-ghost" id="applyAll" style="margin-top:12px" data-i18n="s_apply_all"></button>
+      </div>
+
       <div id="questions"></div>
-      <button class="add-q" id="addQ">+ Dodaj pytanie</button>
+      <button class="add-q" id="addQ" data-i18n="e_add_question"></button>
     </div>
   </div>
 
   <!-- ZAKLADKA: UCZNIOWIE -->
   <div class="ed-body hidden" id="rosterView">
     <div class="side">
-      <h3>Uczniowie</h3>
-      <p class="muted">ID = numer markera na wydrukowanej karcie.</p>
-      <button class="btn-ok" id="saveRoster" style="width:100%">💾 Zapisz listę</button>
-      <button class="btn-ghost" id="addStudent" style="width:100%; margin-top:8px">+ Dodaj ucznia</button>
-      <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
-      <button class="btn-primary" id="cardsBtn" style="width:100%">📄 Pobierz karty (PDF)</button>
-      <p class="muted" style="margin-top:8px">Karty do druku dla powyższej listy — jedna na stronę A4.</p>
+      <h3 data-i18n="e_tab_roster"></h3>
+      <p class="muted" data-i18n="e_roster_hint"></p>
+      <button class="btn-ok" id="saveRoster" style="width:100%" data-i18n="e_save_roster"></button>
+      <button class="btn-ghost" id="addStudent" style="width:100%; margin-top:8px" data-i18n="e_add_student"></button>
+      <hr>
+      <button class="btn-primary" id="cardsBtn" style="width:100%" data-i18n="e_cards_pdf"></button>
+      <p class="muted" data-i18n="e_cards_hint"></p>
     </div>
     <div class="main">
       <div class="panel">
         <table class="roster-table">
-          <thead><tr><th style="width:90px">ID</th><th>Imię i nazwisko</th><th style="width:60px"></th></tr></thead>
+          <thead><tr>
+            <th style="width:90px" data-i18n="e_col_id"></th>
+            <th data-i18n="e_col_name"></th><th style="width:60px"></th>
+          </tr></thead>
           <tbody id="rosterBody"></tbody>
         </table>
-        <p class="muted" style="margin-top:14px">
-          Karty do druku pobierzesz przyciskiem <b>„📄 Pobierz karty (PDF)"</b>
-          z panelu po lewej (jedna karta = jeden uczeń z tej listy).
-        </p>
       </div>
     </div>
   </div>
 
+  <input type="file" id="mediaFile" accept="image/*,video/mp4,video/webm" hidden>
   <div class="toast" id="toast"></div>
+  <script src="/static/i18n.js"></script>
   <script src="/static/editor.js"></script>
 </body>
 </html>

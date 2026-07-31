@@ -25,13 +25,14 @@ def _placeholder(text, w=960, h=540):
 
 class CameraScanner(threading.Thread):
     def __init__(self, session, camera=0, width=1280, height=720,
-                 stable_frames=5, mirror=True):
+                 stable_frames=5, mirror=True, only_known=True):
         super().__init__(daemon=True)
         self.session = session
-        self.camera = camera
+        self.camera = camera          # numer kamery albo adres strumienia
         self.width = width
         self.height = height
         self.mirror = mirror
+        self.only_known = only_known
         self.engine = QuizScanEngine(stable_frames=stable_frames)
         self._jpeg = None
         self._lock = threading.Lock()
@@ -39,16 +40,34 @@ class CameraScanner(threading.Thread):
         self._last_phase = None
         self.camera_ok = False
         self.live_count = 0
+        self.rejected = 0             # ile wykryc odrzucono jako nie-karty
+
+    def _open(self):
+        """Otwiera zrodlo obrazu: kamere lokalna albo strumien z telefonu."""
+        src = self.camera
+        if isinstance(src, str):
+            src = src.strip()
+            if src.isdigit():
+                src = int(src)
+        if isinstance(src, int):
+            # Na Windows DirectShow otwiera kamere znacznie szybciej niz MSMF.
+            backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_ANY
+            cap = cv2.VideoCapture(src, backend)
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
+        else:
+            # Adres sieciowy (telefon z aplikacja IP Webcam / DroidCam itp.).
+            cap = cv2.VideoCapture(src)
+        try:
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)   # mniejsze opoznienie
+        except Exception:
+            pass
+        return cap
 
     def run(self):
-        # Na Windows backend DirectShow otwiera kamere znacznie szybciej niz
-        # domyslny MSMF (ktory potrafi wisiec kilka sekund).
-        backend = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_ANY
-        cap = cv2.VideoCapture(self.camera, backend)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
+        cap = self._open()
         if not cap.isOpened():
-            self._store(_placeholder(f"Brak kamery (indeks {self.camera})"))
+            self._store(_placeholder(f"Brak obrazu ze zrodla: {self.camera}"))
 
         while self._running:
             ok, frame = cap.read()
@@ -69,6 +88,11 @@ class CameraScanner(threading.Thread):
             # symetryczne -- w odbiciu lustrzanym ich wzor nie pasuje do slownika
             # i wiekszosc kart nie zostalaby wykryta. Lustro sluzy wylacznie
             # wygodzie patrzenia i jest nakladane dopiero na podglad.
+            # Filtr ID: gdy wlaczone, akceptujemy tylko numery z listy uczniow.
+            roster = self.session.roster
+            self.engine.allowed_ids = (set(roster) if (self.only_known and roster)
+                                       else None)
+
             detections = self.engine.process(frame)
             self.live_count = len(detections)
 

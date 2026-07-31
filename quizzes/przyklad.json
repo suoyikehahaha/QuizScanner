@@ -1,30 +1,39 @@
 {
-  "title": "Przykladowy quiz",
+  "title": "Przykładowy quiz",
+  "settings": {
+    "default_time": 20,
+    "default_points": 1000,
+    "shuffle_questions": false,
+    "shuffle_answers": false,
+    "show_distribution": true,
+    "auto_reveal_s": 6,
+    "auto_gap_s": 3
+  },
   "questions": [
     {
-      "text": "Ktore miasto jest stolica Polski?",
-      "answers": ["Krakow", "Warszawa", "Poznan", "Gdansk"],
+      "text": "Które miasto jest stolicą Polski?",
+      "answers": ["Kraków", "Warszawa", "Poznań", "Gdańsk"],
       "correct": 1,
       "time": 20,
       "points": 1000
     },
     {
-      "text": "Ile wynosi 7 x 8?",
+      "text": "Ile wynosi 7 × 8?",
       "answers": ["54", "56", "48", "64"],
       "correct": 1,
       "time": 15,
       "points": 1000
     },
     {
-      "text": "Ktora planeta jest najblizej Slonca?",
+      "text": "Która planeta jest najbliżej Słońca?",
       "answers": ["Wenus", "Mars", "Merkury", "Ziemia"],
       "correct": 2,
       "time": 20,
       "points": 1000
     },
     {
-      "text": "Kto napisal 'Pana Tadeusza'?",
-      "answers": ["Slowacki", "Mickiewicz", "Sienkiewicz", "Prus"],
+      "text": "Kto napisał „Pana Tadeusza”?",
+      "answers": ["Juliusz Słowacki", "Adam Mickiewicz", "Henryk Sienkiewicz", "Bolesław Prus"],
       "correct": 1,
       "time": 25,
       "points": 1000

@@ -103,6 +103,17 @@ zaznacz poprawną, ustaw czas i punkty). Zapisz.
 > Wersja ze źródeł ma dodatkowo skrypt:
 > `python generate_cards.py --names students.csv` (tworzy PNG + `karty.pdf`).
 
+### 2b. Nie masz kamery? Użyj telefonu
+1. Zainstaluj w telefonie **IP Webcam** (Android) albo **Iriun Webcam** /
+   **DroidCam** (Android i iPhone) — wszystkie są darmowe.
+2. Podłącz telefon do **tej samej sieci Wi‑Fi** co komputer.
+3. W aplikacji telefonu wybierz „Start server" — pokaże adres, np.
+   `http://192.168.1.50:8080`.
+4. W panelu nauczyciela, w polu **Źródło obrazu**, wpisz adres strumienia
+   (`http://192.168.1.50:8080/video`) i kliknij **Przełącz**.
+
+W panelu jest też przycisk **„📱 Jak podłączyć telefon?"** z tą instrukcją.
+
 ### 3. Przeprowadź quiz
 1. Na rzutniku otwórz **Tablicę** (przycisk „📺 Tablica" albo adres
    `http://localhost:8000/board`).
@@ -116,6 +127,23 @@ zaznacz poprawną, ustaw czas i punkty). Zapisz.
 **Punkty za szybkość** (przełącznik w panelu): domyślnie **wyłączone** —
 każda poprawna odpowiedź warta tyle samo. Włącz, jeśli chcesz, by szybsza
 odpowiedź dawała więcej.
+
+**Tryb automatyczny** (przełącznik w panelu): włącz go, a po starcie quiz
+prowadzi się sam — odlicza czas, pokazuje wynik, przechodzi do następnego
+pytania i na koniec wyświetla ranking. Nie musisz nic klikać. Czasy
+(ile pokazywać wynik, jaka przerwa) ustawisz w edytorze, w sekcji
+**Ustawienia quizu**.
+
+### 4. Dodatkowe możliwości
+
+| Chcę… | Gdzie |
+|---|---|
+| Zmienić język na angielski | Lista wyboru języka na górze panelu (dotyczy też tablicy) |
+| Dodać zdjęcie lub film do pytania | Edytor → pytanie → **🖼 Dodaj plik** |
+| Wysłać quiz innemu nauczycielowi | Edytor → **⬇ Zapisz do pliku** (plik `.quiz` zawiera też media) |
+| Wczytać cudzy quiz | Edytor → **⬆ Wczytaj z pliku** |
+| Wylosować kolejność pytań/odpowiedzi | Edytor → **Ustawienia quizu** |
+| Uniknąć fałszywych odczytów z tła | Panel → **Tylko uczniowie z listy** (domyślnie włączone) |
 
 ---
 

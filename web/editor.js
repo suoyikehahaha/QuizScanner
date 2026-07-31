@@ -1,22 +1,47 @@
-// Edytor quizow i listy uczniow.
+// Edytor quizow, ustawien i listy uczniow.
 const LETTERS = ["A", "B", "C", "D"];
 const $ = id => document.getElementById(id);
+const MEDIA_MAX_MB = 40;
 
-let quiz = { title: "", questions: [] };
+const DEFAULT_SETTINGS = {
+  default_time: 20, default_points: 1000,
+  shuffle_questions: false, shuffle_answers: false,
+  show_distribution: true, auto_reveal_s: 6, auto_gap_s: 3,
+};
+
+let quiz = { title: "", settings: Object.assign({}, DEFAULT_SETTINGS), questions: [] };
 let currentName = null;
+let mediaTargetIndex = null;   // do ktorego pytania wgrywamy plik
 
 function esc(s) {
   return (s || "").replace(/[&<>"]/g, c => (
     { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 }
 function toast(msg) {
-  const t = $("toast"); t.textContent = msg; t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 1600);
+  const el = $("toast"); el.textContent = msg; el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1800);
 }
 async function api(path, body) {
   const opt = body ? { method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body) } : {};
   return (await fetch(path, opt)).json();
+}
+
+// ---------- normalizacja ----------
+function normalize(q) {
+  q = q || {};
+  return {
+    title: q.title || "",
+    settings: Object.assign({}, DEFAULT_SETTINGS, q.settings || {}),
+    questions: (q.questions || []).map(x => ({
+      text: x.text || "",
+      answers: [0, 1, 2, 3].map(i => (x.answers && x.answers[i]) || ""),
+      correct: (typeof x.correct === "number") ? x.correct : 0,
+      time: x.time || 20,
+      points: x.points || 1000,
+      media: (x.media && x.media.file) ? { file: x.media.file, type: x.media.type || "image" } : null,
+    })),
+  };
 }
 
 // ---------- lista quizow ----------
@@ -31,36 +56,48 @@ async function loadQuizList() {
     ul.appendChild(li);
   });
   if (!r.quizzes || !r.quizzes.length)
-    ul.innerHTML = '<li class="muted">Brak quizów — utwórz nowy</li>';
+    ul.innerHTML = `<li class="muted">${t("e_no_quizzes")}</li>`;
 }
 
 async function selectQuiz(name) {
-  const q = await api("/api/quiz?name=" + encodeURIComponent(name));
-  quiz = normalize(q);
+  quiz = normalize(await api("/api/quiz?name=" + encodeURIComponent(name)));
   currentName = name;
   renderAll();
 }
 
-function normalize(q) {
-  q = q || {};
-  return {
-    title: q.title || "",
-    questions: (q.questions || []).map(x => ({
-      text: x.text || "",
-      answers: [0, 1, 2, 3].map(i => (x.answers && x.answers[i]) || ""),
-      correct: (typeof x.correct === "number") ? x.correct : 0,
-      time: x.time || 20,
-      points: x.points || 1000,
-    })),
-  };
-}
-
-// ---------- render pytan ----------
+// ---------- render ----------
 function renderAll() {
   $("quizTitle").value = quiz.title;
-  $("editingName").textContent = currentName ? "plik: " + currentName : "(nowy, niezapisany)";
+  $("editingName").textContent = currentName
+    ? t("e_editing_file") + " " + currentName : t("e_unsaved");
+  renderSettings();
   renderQuestions();
   loadQuizList();
+}
+
+function renderSettings() {
+  const s = quiz.settings;
+  $("setTime").value = s.default_time;
+  $("setPoints").value = s.default_points;
+  $("setReveal").value = s.auto_reveal_s;
+  $("setGap").value = s.auto_gap_s;
+  $("setShuffleQ").checked = !!s.shuffle_questions;
+  $("setShuffleA").checked = !!s.shuffle_answers;
+  $("setShowDist").checked = !!s.show_distribution;
+}
+
+function mediaRow(q, qi) {
+  if (q.media && q.media.file) {
+    const src = "/media/" + encodeURIComponent(q.media.file);
+    const prev = q.media.type === "video"
+      ? `<video src="${src}" class="mprev" muted></video>`
+      : `<img src="${src}" class="mprev" alt="">`;
+    return `<div class="media-row">${prev}
+      <button class="btn-danger" data-act="media-del" data-qi="${qi}">${t("e_media_remove")}</button></div>`;
+  }
+  return `<div class="media-row">
+    <button class="btn-ghost" data-act="media-add" data-qi="${qi}">${t("e_media_add")}</button>
+    <span class="muted">${t("e_media_hint")}</span></div>`;
 }
 
 function renderQuestions() {
@@ -70,43 +107,46 @@ function renderQuestions() {
     card.className = "qcard";
     card.innerHTML = `
       <div class="qrow">
-        <span class="qnum">Pytanie ${qi + 1}</span>
+        <span class="qnum">${t("e_question_n", { n: qi + 1 })}</span>
         <div class="qtools">
           <button class="btn-ghost" data-act="up" data-qi="${qi}">▲</button>
           <button class="btn-ghost" data-act="down" data-qi="${qi}">▼</button>
           <button class="btn-danger" data-act="del" data-qi="${qi}">🗑</button>
         </div>
       </div>
-      <textarea class="text q-text" data-qi="${qi}" placeholder="Treść pytania…">${esc(q.text)}</textarea>
+      <textarea class="text q-text" data-qi="${qi}" placeholder="${t("e_question_ph")}">${esc(q.text)}</textarea>
+      <label class="field mt" >${t("e_media")}</label>
+      ${mediaRow(q, qi)}
       <div class="opts-ed">
         ${[0, 1, 2, 3].map(ai => `
           <div class="opt-ed opt-${LETTERS[ai]}">
             <span class="badge">${LETTERS[ai]}</span>
             <input class="text q-ans" data-qi="${qi}" data-ai="${ai}"
-                   placeholder="Odpowiedź ${LETTERS[ai]}" value="${esc(q.answers[ai])}">
+                   placeholder="${t("e_answer_ph", { letter: LETTERS[ai] })}" value="${esc(q.answers[ai])}">
             <label class="pick"><input type="radio" name="correct-${qi}" value="${ai}"
-                   ${q.correct === ai ? "checked" : ""}> poprawna</label>
+                   ${q.correct === ai ? "checked" : ""}> ${t("e_correct")}</label>
           </div>`).join("")}
       </div>
       <div class="meta-row">
-        <div class="m"><label class="field">Czas (s)</label>
+        <div class="m"><label class="field">${t("e_time_s")}</label>
           <input class="text q-time" type="number" min="0" data-qi="${qi}" value="${q.time}"></div>
-        <div class="m"><label class="field">Punkty (maks)</label>
+        <div class="m"><label class="field">${t("e_points")}</label>
           <input class="text q-points" type="number" min="0" step="100" data-qi="${qi}" value="${q.points}"></div>
       </div>`;
     box.appendChild(card);
   });
 
-  // akcje strukturalne
   box.querySelectorAll("button[data-act]").forEach(b => {
     b.onclick = () => {
       syncFromDom();
-      const qi = +b.dataset.qi;
-      if (b.dataset.act === "del") quiz.questions.splice(qi, 1);
-      if (b.dataset.act === "up" && qi > 0)
+      const qi = +b.dataset.qi, act = b.dataset.act;
+      if (act === "del") quiz.questions.splice(qi, 1);
+      else if (act === "up" && qi > 0)
         [quiz.questions[qi - 1], quiz.questions[qi]] = [quiz.questions[qi], quiz.questions[qi - 1]];
-      if (b.dataset.act === "down" && qi < quiz.questions.length - 1)
+      else if (act === "down" && qi < quiz.questions.length - 1)
         [quiz.questions[qi + 1], quiz.questions[qi]] = [quiz.questions[qi], quiz.questions[qi + 1]];
+      else if (act === "media-add") { mediaTargetIndex = qi; $("mediaFile").click(); return; }
+      else if (act === "media-del") quiz.questions[qi].media = null;
       renderQuestions();
     };
   });
@@ -121,54 +161,113 @@ function syncFromDom() {
   document.querySelectorAll('input[type=radio]:checked').forEach(el => {
     const qi = +el.name.split("-")[1]; quiz.questions[qi].correct = +el.value;
   });
+  quiz.settings = {
+    default_time: +$("setTime").value || 0,
+    default_points: +$("setPoints").value || 0,
+    auto_reveal_s: +$("setReveal").value || 0,
+    auto_gap_s: +$("setGap").value || 0,
+    shuffle_questions: $("setShuffleQ").checked,
+    shuffle_answers: $("setShuffleA").checked,
+    show_distribution: $("setShowDist").checked,
+  };
 }
+
+// ---------- media ----------
+$("mediaFile").onchange = async () => {
+  const f = $("mediaFile").files[0];
+  $("mediaFile").value = "";
+  if (!f || mediaTargetIndex == null) return;
+  if (f.size > MEDIA_MAX_MB * 1024 * 1024) { toast(t("e_media_too_big", { mb: MEDIA_MAX_MB })); return; }
+  const dataUrl = await new Promise(res => {
+    const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(f);
+  });
+  const r = await api("/api/media", { data: dataUrl, name: f.name });
+  if (!r.ok) { toast(t("e_media_bad_type")); return; }
+  syncFromDom();
+  quiz.questions[mediaTargetIndex].media = { file: r.file, type: r.type };
+  mediaTargetIndex = null;
+  renderQuestions();
+};
 
 // ---------- akcje quizu ----------
 $("addQ").onclick = () => {
   syncFromDom();
-  quiz.questions.push({ text: "", answers: ["", "", "", ""], correct: 0, time: 20, points: 1000 });
+  const s = quiz.settings;
+  quiz.questions.push({
+    text: "", answers: ["", "", "", ""], correct: 0,
+    time: s.default_time, points: s.default_points, media: null,
+  });
   renderQuestions();
 };
+$("applyAll").onclick = () => {
+  syncFromDom();
+  quiz.questions.forEach(q => {
+    q.time = quiz.settings.default_time;
+    q.points = quiz.settings.default_points;
+  });
+  renderQuestions(); toast(t("s_applied"));
+};
 $("newQuiz").onclick = () => {
-  quiz = { title: "Nowy quiz", questions: [] };
+  quiz = { title: "", settings: Object.assign({}, DEFAULT_SETTINGS), questions: [] };
   currentName = null; renderAll();
 };
 $("saveQuiz").onclick = async () => {
   syncFromDom();
-  const name = currentName || (quiz.title || "quiz");
-  const r = await api("/api/quiz", { name, quiz });
-  currentName = r.name; renderAll(); toast("Zapisano: " + r.name);
+  const r = await api("/api/quiz", { name: currentName || (quiz.title || "quiz"), quiz });
+  currentName = r.name; renderAll(); toast(t("e_saved") + " " + r.name);
 };
 $("dupQuiz").onclick = async () => {
   syncFromDom();
   const r = await api("/api/quiz", { name: (quiz.title || "quiz") + " kopia", quiz });
-  currentName = r.name; renderAll(); toast("Utworzono kopię: " + r.name);
+  currentName = r.name; renderAll(); toast(t("e_copy_made") + " " + r.name);
 };
 $("delQuiz").onclick = async () => {
-  if (!currentName) { quiz = { title: "", questions: [] }; renderAll(); return; }
-  if (!confirm("Usunąć quiz " + currentName + "?")) return;
+  if (!currentName) { $("newQuiz").onclick(); return; }
+  if (!confirm(t("e_confirm_delete", { name: currentName }))) return;
   await api("/api/quiz/delete", { name: currentName });
-  currentName = null; quiz = { title: "", questions: [] }; renderAll(); toast("Usunięto");
+  currentName = null; $("newQuiz").onclick(); toast(t("e_deleted"));
 };
+
+// zapis do pliku / wczytanie z pliku (dzielenie sie quizem)
+$("exportQuiz").onclick = async () => {
+  syncFromDom();
+  const name = currentName || (quiz.title || "quiz");
+  await api("/api/quiz", { name, quiz });     // najpierw zapisz biezacy stan
+  currentName = name; renderAll();
+  window.open("/api/quiz/export?name=" + encodeURIComponent(name), "_blank");
+};
+$("importBtn").onclick = () => $("importFile").click();
+$("importFile").onchange = async () => {
+  const f = $("importFile").files[0];
+  $("importFile").value = "";
+  if (!f) return;
+  try {
+    const bundle = JSON.parse(await f.text());
+    if (!bundle || !Array.isArray(bundle.questions)) throw new Error("bad");
+    const base = (f.name || "quiz").replace(/\.(quiz|json)$/i, "");
+    const r = await api("/api/quiz/import", { name: bundle.title || base, quiz: bundle });
+    if (!r.ok) throw new Error("bad");
+    await selectQuiz(r.name);
+    toast(t("e_imported"));
+  } catch (e) { toast(t("e_import_failed")); }
+};
+
 $("toTeacher").onclick = () => location.href = "/teacher";
 
 // ---------- zakladki ----------
 $("tabQuiz").onclick = () => switchTab("quiz");
 $("tabRoster").onclick = () => switchTab("roster");
-function switchTab(t) {
-  $("tabQuiz").classList.toggle("active", t === "quiz");
-  $("tabRoster").classList.toggle("active", t === "roster");
-  $("quizView").classList.toggle("hidden", t !== "quiz");
-  $("rosterView").classList.toggle("hidden", t !== "roster");
-  if (t === "roster") loadRoster();
+function switchTab(tab) {
+  $("tabQuiz").classList.toggle("active", tab === "quiz");
+  $("tabRoster").classList.toggle("active", tab === "roster");
+  $("quizView").classList.toggle("hidden", tab !== "quiz");
+  $("rosterView").classList.toggle("hidden", tab !== "roster");
+  if (tab === "roster") loadRoster();
 }
 
-// ---------- roster ----------
+// ---------- uczniowie ----------
 let roster = {};
-async function loadRoster() {
-  roster = await api("/api/roster");
-  renderRoster();
-}
+async function loadRoster() { roster = await api("/api/roster"); renderRoster(); }
 function renderRoster() {
   const body = $("rosterBody"); body.innerHTML = "";
   Object.keys(roster).map(Number).sort((a, b) => a - b).forEach(id => {
@@ -185,31 +284,38 @@ function syncRoster() {
   const next = {};
   document.querySelectorAll("#rosterBody tr").forEach(tr => {
     const id = tr.querySelector(".r-id").value;
-    const name = tr.querySelector(".r-name").value;
-    if (id !== "") next[+id] = name;
+    if (id !== "") next[+id] = tr.querySelector(".r-name").value;
   });
   roster = next;
 }
 $("addStudent").onclick = () => {
   syncRoster();
-  const nextId = Object.keys(roster).length ? Math.max(...Object.keys(roster).map(Number)) + 1 : 0;
-  roster[nextId] = ""; renderRoster();
+  const next = Object.keys(roster).length ? Math.max(...Object.keys(roster).map(Number)) + 1 : 0;
+  roster[next] = ""; renderRoster();
 };
 $("saveRoster").onclick = async () => {
-  syncRoster();
-  await api("/api/roster", roster); toast("Zapisano listę uczniów");
+  syncRoster(); await api("/api/roster", roster); toast(t("e_roster_saved"));
 };
 $("cardsBtn").onclick = async () => {
   syncRoster();
-  if (!Object.keys(roster).length) { toast("Najpierw dodaj uczniów"); return; }
-  await api("/api/roster", roster);           // karty wg aktualnej listy
-  toast("Generuję PDF z kartami…");
+  if (!Object.keys(roster).length) { toast(t("e_add_students_first")); return; }
+  await api("/api/roster", roster);
+  toast(t("e_generating_pdf"));
   window.open("/api/cards.pdf", "_blank");
 };
 
+// ---------- jezyk ----------
+$("langSel").onchange = async () => {
+  await api("/api/settings", { lang: $("langSel").value });
+  setLang($("langSel").value);
+};
+document.addEventListener("i18n:changed", () => { if (quiz) renderAll(); });
+
 // ---------- start ----------
 (async function init() {
+  await initLang();
+  $("langSel").value = document.documentElement.lang;
   const r = await api("/api/quizzes");
   if (r.quizzes && r.quizzes.length) await selectQuiz(r.active || r.quizzes[0]);
-  else { quiz = { title: "Nowy quiz", questions: [] }; renderAll(); }
+  else { quiz = normalize({ title: "" }); renderAll(); }
 })();

@@ -55,6 +55,38 @@ body.teacher { background: var(--paper); }
 .switch input:checked + .slider { background: var(--accent); }
 .switch input:checked + .slider::before { transform: translateX(20px); }
 
+.lang-sel { padding: 7px 8px; }
+
+/* zrodlo obrazu (kamera / telefon) */
+.src-row { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.src-row .field { font-size: 12px; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; display: block; }
+.src-inline { display: flex; gap: 8px; }
+.src-inline input.text { flex: 1; font: inherit; padding: 9px 11px;
+  border: 1px solid var(--line); border-radius: 9px; }
+.src-row .sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.linklike { background: none; color: var(--accent); padding: 6px 0;
+  text-decoration: underline; font-size: 13px; }
+
+/* pasek trybu automatycznego */
+.auto-bar {
+  margin-top: 10px; padding: 9px 14px; border-radius: 9px;
+  background: var(--accent-soft); color: var(--accent-2);
+  font-weight: 700; font-size: 13px; border: 1px solid var(--accent);
+}
+.hidden { display: none !important; }
+
+/* okno pomocy */
+.modal { position: fixed; inset: 0; background: rgba(15,17,24,.6);
+  display: grid; place-items: center; z-index: 50; padding: 20px; }
+.modal-box { background: #fff; border-radius: 14px; padding: 22px 26px;
+  max-width: 640px; max-height: 84vh; overflow: auto; }
+.modal-box h2 { margin: 0 0 12px; font-size: 20px; }
+.modal-box ol, .modal-box ul { padding-left: 20px; line-height: 1.6; }
+.modal-box li { margin-bottom: 6px; }
+.modal-box code { background: var(--paper); padding: 2px 6px; border-radius: 5px;
+  border: 1px solid var(--line); font-size: 13px; }
+
 .qhead { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .qhead .counter { color: var(--muted); font-weight: 700; }
 .qhead .phase {

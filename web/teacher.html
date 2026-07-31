@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>QuizScanner — Panel nauczyciela</title>
+  <title>QuizScanner</title>
   <link rel="icon" href="/static/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/common.css">
   <link rel="stylesheet" href="/static/teacher.css">
@@ -11,21 +11,47 @@
 <body class="teacher">
   <div class="topbar">
     <span class="brand"><img class="brand-logo" src="/static/logo.svg" alt="">QuizScanner</span>
-    <select id="quizSel" title="Wybierz quiz"></select>
-    <button class="btn-primary" id="loadBtn">Wczytaj</button>
-    <button class="btn-ghost" id="editorBtn">✏️ Edytor</button>
-    <button class="btn-ghost" id="boardBtn">📺 Tablica</button>
+    <select id="quizSel"></select>
+    <button class="btn-primary" id="loadBtn" data-i18n="t_load"></button>
+    <button class="btn-ghost" id="editorBtn" data-i18n="t_editor"></button>
+    <button class="btn-ghost" id="boardBtn" data-i18n="t_board"></button>
     <div class="spacer"></div>
-    <span class="lan-url" id="lanUrl">Tablica w sieci: —</span>
-    <button class="btn-ghost" id="exportBtn">⬇ Eksport wyników</button>
+    <select id="langSel" class="lang-sel" data-i18n-title="lang_label">
+      <option value="pl">🇵🇱 Polski</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
+    <span class="lan-url" id="lanUrl">—</span>
+    <button class="btn-ghost" id="exportBtn" data-i18n="t_export"></button>
   </div>
 
   <div class="layout">
     <!-- Lewa kolumna: kamera -->
-    <div class="card">
-      <h3>Podgląd kamery (skaner ArUco)</h3>
-      <img class="cam" id="cam" src="/video_feed" alt="kamera">
-      <div class="cam-note" id="camNote">Uczniowie obracają kartę wybraną literą do góry.</div>
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div class="card">
+        <h3 data-i18n="t_cam_title"></h3>
+        <img class="cam" id="cam" src="/video_feed" alt="">
+        <div class="cam-note" id="camNote"></div>
+
+        <div class="src-row">
+          <label class="field" data-i18n="t_cam_source"></label>
+          <div class="src-inline">
+            <input class="text" id="camSrc" placeholder="0">
+            <button class="btn-primary" id="camApply" data-i18n="t_cam_apply"></button>
+          </div>
+          <div class="sub" data-i18n="t_cam_source_hint"></div>
+          <button class="linklike" id="phoneHelpBtn" data-i18n="t_phone_help"></button>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input type="checkbox" id="onlyKnownToggle"><span class="slider"></span>
+          </label>
+          <div>
+            <div class="lbl" data-i18n="t_only_known"></div>
+            <div class="sub" data-i18n="t_only_known_sub"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Prawa kolumna: sterowanie i wyniki -->
@@ -33,52 +59,75 @@
       <div class="card qbox">
         <div class="qhead">
           <span class="counter" id="counter">—</span>
-          <span class="phase idle" id="phase">idle</span>
+          <span class="phase idle" id="phase"></span>
         </div>
-        <div class="qtext-t" id="qtext">Wczytaj quiz, aby rozpocząć.</div>
+        <div class="qtext-t" id="qtext"></div>
         <div class="opts-t" id="opts"></div>
 
         <div class="stat-row">
-          <div class="stat"><div class="k">Czas</div><div class="v" id="timeLeft">—</div></div>
-          <div class="stat"><div class="k">Odpowiedziało</div><div class="v" id="answered">0</div></div>
-          <div class="stat"><div class="k">A/B/C/D</div><div class="v" id="dist" style="font-size:18px">0/0/0/0</div></div>
+          <div class="stat"><div class="k" data-i18n="t_stat_time"></div><div class="v" id="timeLeft">—</div></div>
+          <div class="stat"><div class="k" data-i18n="t_stat_answered"></div><div class="v" id="answered">0</div></div>
+          <div class="stat"><div class="k" data-i18n="t_stat_dist"></div><div class="v" id="dist" style="font-size:18px">0/0/0/0</div></div>
         </div>
 
         <div class="controls">
-          <button class="btn-ok" id="startBtn">▶ Start pytania</button>
-          <button class="btn-primary" id="revealBtn">✓ Pokaż wynik</button>
-          <button class="btn-ghost" id="prevBtn">◀ Poprzednie</button>
-          <button class="btn-ghost" id="nextBtn">Następne ▶</button>
-          <button class="btn-danger" id="resetBtn">⟲ Reset punktów</button>
+          <button class="btn-ok" id="startBtn" data-i18n="t_start"></button>
+          <button class="btn-primary" id="revealBtn" data-i18n="t_reveal"></button>
+          <button class="btn-ghost" id="prevBtn" data-i18n="t_prev"></button>
+          <button class="btn-ghost" id="nextBtn" data-i18n="t_next"></button>
+          <button class="btn-danger" id="resetBtn" data-i18n="t_reset"></button>
         </div>
 
         <div class="switch-row">
           <label class="switch">
-            <input type="checkbox" id="speedToggle">
-            <span class="slider"></span>
+            <input type="checkbox" id="autoToggle"><span class="slider"></span>
           </label>
           <div>
-            <div class="lbl">Punkty za szybkość</div>
-            <div class="sub">Wył. = każda poprawna odpowiedź warta tyle samo. Wł. = szybciej daje więcej (styl Kahoot).</div>
+            <div class="lbl" data-i18n="t_auto_label"></div>
+            <div class="sub" data-i18n="t_auto_sub"></div>
+          </div>
+        </div>
+        <div class="auto-bar hidden" id="autoBar"></div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input type="checkbox" id="speedToggle"><span class="slider"></span>
+          </label>
+          <div>
+            <div class="lbl" data-i18n="t_speed_label"></div>
+            <div class="sub" data-i18n="t_speed_sub"></div>
           </div>
         </div>
       </div>
 
       <div class="card">
-        <h3>Odpowiedzi uczniów na żywo</h3>
+        <h3 data-i18n="t_students_live"></h3>
         <table class="students">
-          <thead><tr><th>ID</th><th>Uczeń</th><th>Odpowiedź</th><th>Punkty</th></tr></thead>
-          <tbody id="studentsBody"><tr><td colspan="4" style="color:#999">Brak odpowiedzi</td></tr></tbody>
+          <thead><tr>
+            <th data-i18n="t_col_id"></th><th data-i18n="t_col_student"></th>
+            <th data-i18n="t_col_answer"></th><th data-i18n="t_col_points"></th>
+          </tr></thead>
+          <tbody id="studentsBody"></tbody>
         </table>
       </div>
 
       <div class="card">
-        <h3>Ranking</h3>
-        <ol class="lead" id="lead"><li><span class="n" style="color:#999">Brak wyników</span></li></ol>
+        <h3 data-i18n="t_ranking"></h3>
+        <ol class="lead" id="lead"></ol>
       </div>
     </div>
   </div>
 
+  <!-- Pomoc: telefon jako kamera -->
+  <div class="modal hidden" id="phoneModal">
+    <div class="modal-box">
+      <h2 id="phTitle"></h2>
+      <div id="phBody"></div>
+      <button class="btn-primary" id="phClose" data-i18n="close"></button>
+    </div>
+  </div>
+
+  <script src="/static/i18n.js"></script>
   <script src="/static/teacher.js"></script>
 </body>
 </html>

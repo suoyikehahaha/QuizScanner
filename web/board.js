@@ -17,19 +17,31 @@ function pips(total, index) {
   return `<div class="pips">${out}</div>`;
 }
 
+// Zdjecie lub film dolaczony do pytania.
+function mediaBlock(q) {
+  const m = q.media;
+  if (!m || !m.file) return "";
+  const src = "/media/" + encodeURIComponent(m.file);
+  if (m.type === "video") {
+    return `<div class="qmedia"><video src="${src}" autoplay muted loop playsinline></video></div>`;
+  }
+  return `<div class="qmedia"><img src="${src}" alt=""></div>`;
+}
+
 function optionTile(i, text, st) {
   const q = st.question;
   const reveal = st.phase === "reveal";
   const isCorrect = reveal && q.correct === i;
   const dim = reveal && q.correct != null && q.correct !== i;
+  const showDist = reveal && st.show_distribution !== false;
   const count = st.distribution[LETTERS[i]] || 0;
   const maxCount = Math.max(1, ...Object.values(st.distribution));
-  const barW = reveal ? Math.round(100 * count / maxCount) : 0;
+  const barW = showDist ? Math.round(100 * count / maxCount) : 0;
   return `<div class="opt opt-${LETTERS[i]} ${isCorrect ? "correct" : ""} ${dim ? "dim" : ""}">
     <span class="badge">${LETTERS[i]}</span>
     <span class="txt">${esc(text)}</span>
     <span class="check">✓</span>
-    ${reveal ? `<span class="count">${count}</span><span class="dist" style="width:${barW}%"></span>` : ""}
+    ${showDist ? `<span class="count">${count}</span><span class="dist" style="width:${barW}%"></span>` : ""}
   </div>`;
 }
 
@@ -38,6 +50,7 @@ function renderQuestion(st) {
   const low = st.time_left != null && st.time_left <= 5;
   const barW = (st.time_left != null && q.time) ? Math.max(0, 100 * st.time_left / q.time) : 100;
   const tiles = [0, 1, 2, 3].map(i => optionTile(i, q.answers[i] || "", st)).join("");
+  const hasMedia = q.media && q.media.file;
   return `<div class="board-wrap">
     <div class="board-top">
       <div class="board-title">${esc(st.quiz_title)}</div>
@@ -45,13 +58,14 @@ function renderQuestion(st) {
       <div class="time-chip ${low ? "low" : ""}">${st.time_left != null ? Math.ceil(st.time_left) + "s" : "—"}</div>
     </div>
     <div class="time-bar"><i style="width:${barW}%"></i></div>
-    <div class="kicker">Pytanie ${st.index + 1} z ${st.total}</div>
-    <div class="qtext">${esc(q.text)}</div>
-    <div class="answers">${tiles}</div>
+    <div class="kicker">${t("b_question_of", { n: st.index + 1, total: st.total })}</div>
+    <div class="qtext ${hasMedia ? "with-media" : ""}">${esc(q.text)}</div>
+    ${mediaBlock(q)}
+    <div class="answers ${hasMedia ? "compact" : ""}">${tiles}</div>
     <div class="board-foot">
-      <span class="chip">◎ Zeskanowano: <b>${st.answered}</b></span>
+      <span class="chip">◎ ${t("b_scanned")} <b>${st.answered}</b></span>
       ${st.phase === "reveal" && q.correct != null
-        ? `<span class="chip">Poprawna: <span class="badge badge-${LETTERS[q.correct]}">${LETTERS[q.correct]}</span> ${esc(q.answers[q.correct])}</span>` : ""}
+        ? `<span class="chip">${t("b_correct")} <span class="badge badge-${LETTERS[q.correct]}">${LETTERS[q.correct]}</span> ${esc(q.answers[q.correct])}</span>` : ""}
     </div>
   </div>`;
 }
@@ -61,16 +75,16 @@ function renderIdle(st) {
     return `<div class="center-screen">
       <img class="idle-logo" src="/static/logo.svg" alt="">
       <div class="kicker">QuizScanner</div>
-      <h1>${esc(st.quiz_title || "Gotowi do startu")}</h1>
-      <p>Wczytaj quiz w panelu nauczyciela</p>
+      <h1>${esc(st.quiz_title || t("b_ready"))}</h1>
+      <p>${t("b_load_hint")}</p>
       <div class="scanline"></div>
     </div>`;
   }
   return `<div class="center-screen">
-    <div class="kicker">Pytanie ${st.index + 1} z ${st.total}</div>
+    <div class="kicker">${t("b_question_of", { n: st.index + 1, total: st.total })}</div>
     <h1>${esc(st.question.text)}</h1>
     <div class="scanline"></div>
-    <p>Przygotuj kartę — obróć wybraną literę (A/B/C/D) do góry</p>
+    <p>${t("b_prepare")}</p>
   </div>`;
 }
 
@@ -82,9 +96,9 @@ function renderPodium(st) {
       <span class="pts">${r.score} pkt</span>
     </div>`).join("");
   return `<div class="center-screen">
-    <div class="kicker">Koniec quizu</div>
-    <h1>Klasyfikacja</h1>
-    <div class="podium">${rows || '<div class="rank-row"><span class="who">Brak wyników</span></div>'}</div>
+    <div class="kicker">${t("b_end_kicker")}</div>
+    <h1>${t("b_standings")}</h1>
+    <div class="podium">${rows || `<div class="rank-row"><span class="who">${t("b_no_results")}</span></div>`}</div>
   </div>`;
 }
 
@@ -97,12 +111,12 @@ function render(st) {
 async function tick() {
   try {
     const st = await (await fetch("/api/state")).json();
-    const html = render(st);
-    const key = st.phase + st.index + st.answered + JSON.stringify(st.distribution)
+    const key = document.documentElement.lang + st.phase + st.index + st.answered
+      + JSON.stringify(st.distribution)
       + (st.phase === "podium" ? JSON.stringify(st.leaderboard) : "");
-    if (key !== last) { root.innerHTML = html; last = key; }
+    if (key !== last) { root.innerHTML = render(st); last = key; }
     else {
-      // plynna aktualizacja samego timera bez przerysowania
+      // plynna aktualizacja samego timera bez przerysowania (nie przerywa filmu)
       const chip = root.querySelector(".time-chip");
       const bar = root.querySelector(".time-bar > i");
       if (chip && st.time_left != null && st.question) {
@@ -114,5 +128,17 @@ async function tick() {
   } catch (e) { /* serwer chwilowo niedostepny */ }
 }
 
-setInterval(tick, 350);
-tick();
+// Zmiana jezyka (ustawiona w panelu) ma odswiezyc tablice.
+async function pollLang() {
+  try {
+    const s = await (await fetch("/api/settings")).json();
+    if ((s.lang || "pl") !== document.documentElement.lang) setLang(s.lang || "pl");
+  } catch (e) { }
+}
+
+(async function init() {
+  await initLang();
+  tick();
+  setInterval(tick, 350);
+  setInterval(pollLang, 2000);
+})();

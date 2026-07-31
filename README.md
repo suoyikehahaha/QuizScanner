@@ -11,7 +11,8 @@
 </p>
 
 <p align="center">
-  <img alt="wersja" src="https://img.shields.io/badge/wersja-1.3.0-e2603f">
+  <img alt="wersja" src="https://img.shields.io/badge/wersja-2.0.0-e2603f">
+  <img alt="jezyki" src="https://img.shields.io/badge/j%C4%99zyk-PL%20%7C%20EN-2f9fb3">
   <img alt="platforma" src="https://img.shields.io/badge/platforma-Windows%20%7C%20Linux%20%7C%20macOS-2f9fb3">
   <img alt="python" src="https://img.shields.io/badge/Python-3.10%2B-4faa6a">
   <img alt="licencja" src="https://img.shields.io/badge/licencja-MIT-8a7bef">
@@ -23,8 +24,14 @@
 ## ✨ Funkcje
 
 - 📷 **Odczyt z kamery** — jeden kadr wykrywa całą klasę naraz (markery ArUco).
+- 📱 **Telefon zamiast kamery** — wystarczy darmowa aplikacja streamująca (IP Webcam, DroidCam, Iriun).
+- ▶️ **Tryb automatyczny** — wciskasz Start, a quiz sam odsłania wyniki i przechodzi dalej.
 - 🖥️ **Tablica na rzutnik** — własny motyw „Scan": pytanie, timer, rozkład odpowiedzi, podium.
-- ✏️ **Edytor pytań** — quizy, odpowiedzi, punktacja i lista uczniów w przeglądarce.
+- 🖼️ **Zdjęcia i filmy w pytaniach** — wgrywasz plik w edytorze, pokazuje się na tablicy.
+- ✏️ **Edytor z ustawieniami** — czas, punkty, losowanie pytań i odpowiedzi, opóźnienia trybu auto.
+- 📤 **Quiz jako plik** — zapisujesz `.quiz` (z osadzonymi mediami) i wysyłasz innemu nauczycielowi.
+- 🌍 **Polski i angielski** — przełącznik języka wspólny dla panelu i tablicy.
+- 🎯 **Odporność na fałszywe odczyty** — ignoruje kody spoza listy klasy i wzory bez czarno-białego kontrastu.
 - 🖨️ **Karty do druku** — gotowy PDF jednym kliknięciem (także z `.exe`).
 - 🏆 **Punktacja i ranking** — stała albo „za szybkość" (przełącznik w panelu).
 - 🔌 **Offline, bez kont i limitów** — serwer na czystej bibliotece Pythona (bez Flask).
@@ -112,6 +119,29 @@ komputer podpięty do rzutnika albo Smart TV) pod adresem
 - **⬇ Eksport wyników** — zapis rankingu do `wyniki_<data>.csv`.
 - **Przełącznik „Punkty za szybkość"** — wył. (domyślnie): każda poprawna
   odpowiedź warta tyle samo; wł.: szybsza odpowiedź daje więcej punktów.
+- **Przełącznik „Tryb automatyczny"** — po włączeniu quiz prowadzi się sam:
+  czas pytania → wynik → następne pytanie → ranking. Bez klikania.
+- **Przełącznik „Tylko uczniowie z listy"** — ignoruje kody spoza klasy
+  (chroni przed przypadkowymi wykryciami w tle).
+- **Źródło obrazu** — numer kamery albo adres telefonu; przycisk
+  „Jak podłączyć telefon?" opisuje krok po kroku.
+
+## Telefon jako kamera
+
+Nie masz kamery internetowej? Wystarczy telefon:
+
+1. Zainstaluj **IP Webcam** (Android) albo **Iriun Webcam** / **DroidCam** (Android, iPhone).
+2. Podłącz telefon do **tej samej sieci Wi‑Fi** co komputer.
+3. W aplikacji wybierz „Start server" — pokaże adres, np. `http://192.168.1.50:8080`.
+4. W panelu nauczyciela wpisz adres strumienia i kliknij **Przełącz**:
+   - IP Webcam: `http://192.168.1.50:8080/video`
+   - DroidCam: `http://192.168.1.50:4747/video`
+
+## Dzielenie się quizem
+
+W edytorze **„⬇ Zapisz do pliku"** tworzy plik `.quiz` z pytaniami, ustawieniami
+**i osadzonymi zdjęciami/filmami** — jeden plik, który wystarczy wysłać. Odbiorca
+klika **„⬆ Wczytaj z pliku"** i ma gotowy quiz razem z mediami.
 
 Poprawna odpowiedź jest **ukryta na tablicy** do momentu „Pokaż wynik".
 

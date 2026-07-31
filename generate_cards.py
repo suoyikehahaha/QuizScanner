@@ -23,19 +23,72 @@ import os
 
 import cv2
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 from aruco_common import get_dictionary, ANSWER_LABELS
+from i18n import t
 
 
-def render_text(text, font_scale, thickness, color=(0, 0, 0)):
-    """Rysuje tekst na wlasnym bialym kafelku i go zwraca (BGR)."""
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    (w, h), baseline = cv2.getTextSize(text, font, font_scale, thickness)
-    pad = thickness * 2 + 6
-    tile = np.full((h + baseline + pad * 2, w + pad * 2, 3), 255, np.uint8)
-    cv2.putText(tile, text, (pad, h + pad), font, font_scale, color,
-                thickness, cv2.LINE_AA)
-    return tile
+# Czcionki TrueType -- potrzebne, bo cv2.putText nie potrafi narysowac
+# polskich znakow (obsluguje tylko ASCII). Szukamy typowych czcionek
+# systemowych; kolejnosc: Windows, Linux, macOS.
+_FONT_CANDIDATES = {
+    False: [  # zwykla
+        r"C:\Windows\Fonts\segoeui.ttf", r"C:\Windows\Fonts\arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/Library/Fonts/Arial.ttf", "/System/Library/Fonts/Helvetica.ttc",
+    ],
+    True: [   # pogrubiona
+        r"C:\Windows\Fonts\segoeuib.ttf", r"C:\Windows\Fonts\arialbd.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/Library/Fonts/Arial Bold.ttf", "/System/Library/Fonts/Helvetica.ttc",
+    ],
+}
+_font_cache = {}
+
+
+def get_font(size, bold=False):
+    """Zwraca czcionke TrueType o zadanym rozmiarze (z pamiecia podreczna)."""
+    key = (int(size), bool(bold))
+    if key in _font_cache:
+        return _font_cache[key]
+    font = None
+    for path in _FONT_CANDIDATES[bool(bold)]:
+        if os.path.exists(path):
+            try:
+                font = ImageFont.truetype(path, int(size))
+                break
+            except Exception:
+                continue
+    if font is None:                      # ostatecznosc: wbudowana bitmapowa
+        font = ImageFont.load_default()
+    _font_cache[key] = font
+    return font
+
+
+def render_text(text, size, bold=True, color=(0, 0, 0)):
+    """Rysuje tekst na wlasnym bialym kafelku (BGR) -- z polskimi znakami."""
+    font = get_font(size, bold)
+    dummy = Image.new("RGB", (1, 1), "white")
+    box = ImageDraw.Draw(dummy).textbbox((0, 0), text, font=font)
+    pad = max(4, int(size * 0.12))
+    w = (box[2] - box[0]) + pad * 2
+    h = (box[3] - box[1]) + pad * 2
+    tile = Image.new("RGB", (max(w, 1), max(h, 1)), "white")
+    ImageDraw.Draw(tile).text((pad - box[0], pad - box[1]), text,
+                              font=font, fill=color)
+    return cv2.cvtColor(np.array(tile), cv2.COLOR_RGB2BGR)
+
+
+def draw_text(card_bgr, text, xy, size, bold=False, color=(0, 0, 0)):
+    """Rysuje tekst bezposrednio na obrazie BGR (obsluguje UTF-8)."""
+    img = Image.fromarray(cv2.cvtColor(card_bgr, cv2.COLOR_BGR2RGB))
+    ImageDraw.Draw(img).text(xy, text, font=get_font(size, bold), fill=color)
+    return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
 
 def rotate90(img, angle):
@@ -66,7 +119,7 @@ def paste_center(dst, patch, cx, cy):
     dst[y0c:y1c, x0c:x1c] = patch[y0c - y0:y1c - y0, x0c - x0:x1c - x0]
 
 
-def make_card(marker_id, name, dictionary, size_px, marker_px):
+def make_card(marker_id, name, dictionary, size_px, marker_px, lang="pl"):
     """Buduje pojedyncza karte (obraz BGR)."""
     W, H = size_px
     card = np.full((H, W, 3), 255, np.uint8)
@@ -81,9 +134,7 @@ def make_card(marker_id, name, dictionary, size_px, marker_px):
 
     # Litery przy krawedziach. Kazda obrocona tak, by byla czytelna,
     # gdy jej krawedz jest u gory (A gora, B prawo, C dol, D lewo).
-    offset = marker_px // 2 + int(marker_px * 0.16)
-    letter_scale = marker_px / 190.0
-    letter_th = max(3, marker_px // 70)
+    offset = marker_px // 2 + int(marker_px * 0.17)
     placements = {
         "A": (cx, cy - offset, 0),
         "B": (cx + offset, cy, 270),
@@ -91,21 +142,20 @@ def make_card(marker_id, name, dictionary, size_px, marker_px):
         "D": (cx - offset, cy, 90),
     }
     for letter, (px, py, ang) in placements.items():
-        tile = render_text(letter, letter_scale, letter_th)
+        tile = render_text(letter, int(marker_px * 0.20), bold=True)
         tile = rotate90(tile, ang)
         paste_center(card, tile, px, py)
 
-    # Naglowek: ID + imie.
+    # Naglowek: ID + imie ucznia.
     header = f"#{marker_id}"
     if name:
         header += f"   {name}"
-    cv2.putText(card, header, (28, 62), cv2.FONT_HERSHEY_SIMPLEX,
-                W / 720.0, (0, 0, 0), 2, cv2.LINE_AA)
+    card = draw_text(card, header, (30, 26), int(W * 0.048), bold=True)
 
-    # Stopka z instrukcja.
-    cv2.putText(card, "Obroc wybrana litere do gory i podnies karte",
-                (28, H - 26), cv2.FONT_HERSHEY_SIMPLEX,
-                W / 1150.0, (90, 90, 90), 2, cv2.LINE_AA)
+    # Stopka z instrukcja (w wybranym jezyku, z polskimi znakami).
+    hint = t("card_hint", lang)
+    card = draw_text(card, hint, (30, H - int(W * 0.052)),
+                     int(W * 0.030), bold=False, color=(105, 105, 105))
     return card
 
 

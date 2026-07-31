@@ -29,7 +29,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-from quiz_session import QuizSession
+from quiz_session import QuizSession, PHASE_IDLE
 from camera_worker import CameraScanner
 
 # Sciezki dzialaja tak samo z kodu zrodlowego, jak i w spakowanym .exe
@@ -44,8 +44,40 @@ else:
 
 WEB_DIR = os.path.join(RES_DIR, "web")
 QUIZ_DIR = os.path.join(DATA_DIR, "quizzes")
+MEDIA_DIR = os.path.join(DATA_DIR, "media")
 ROSTER_JSON = os.path.join(DATA_DIR, "roster.json")
 STUDENTS_CSV = os.path.join(DATA_DIR, "students.csv")
+SETTINGS_JSON = os.path.join(DATA_DIR, "settings.json")
+
+# Ustawienia aplikacji (zapisywane obok programu).
+DEFAULT_SETTINGS = {
+    "lang": "pl",          # jezyk interfejsu: pl / en
+    "camera": "0",         # numer kamery albo adres strumienia (telefon)
+    "mirror": True,        # lustro w podgladzie (nie wplywa na rozpoznawanie)
+    "only_known": True,    # akceptuj tylko ID z listy uczniow
+}
+settings = dict(DEFAULT_SETTINGS)
+
+
+def load_settings():
+    global settings
+    data = dict(DEFAULT_SETTINGS)
+    try:
+        if os.path.exists(SETTINGS_JSON):
+            with open(SETTINGS_JSON, encoding="utf-8") as f:
+                data.update(json.load(f))
+    except Exception:
+        pass
+    settings = data
+    return settings
+
+
+def save_settings():
+    try:
+        with open(SETTINGS_JSON, "w", encoding="utf-8") as f:
+            json.dump(settings, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
 
 
 def _seed_data():
@@ -76,7 +108,18 @@ CONTENT_TYPES = {
     ".json": "application/json; charset=utf-8",
     ".png": "image/png",
     ".svg": "image/svg+xml",
+    ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+    ".gif": "image/gif", ".webp": "image/webp",
+    ".mp4": "video/mp4", ".webm": "video/webm", ".ogg": "video/ogg",
 }
+
+# Dozwolone typy plikow dodawanych do pytan.
+MEDIA_EXT = {
+    "image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif",
+    "image/webp": ".webp",
+    "video/mp4": ".mp4", "video/webm": ".webm",
+}
+MEDIA_MAX_MB = 40
 
 
 # --------------------------- pomocnicze ---------------------------
@@ -158,6 +201,73 @@ def lan_ip():
         return "127.0.0.1"
 
 
+def export_quiz_bundle(quiz):
+    """Buduje samodzielny plik .quiz -- z osadzonymi mediami (base64),
+    zeby dalo sie go wyslac innemu nauczycielowi jako jeden plik."""
+    import base64
+    bundle = json.loads(json.dumps(quiz))  # kopia
+    bundle["format"] = "quizscanner/1"
+    media = {}
+    for q in bundle.get("questions", []):
+        m = q.get("media")
+        if not m or not m.get("file"):
+            continue
+        p = os.path.join(MEDIA_DIR, os.path.basename(m["file"]))
+        if os.path.exists(p) and os.path.getsize(p) <= MEDIA_MAX_MB * 1024 * 1024:
+            with open(p, "rb") as f:
+                media[m["file"]] = base64.b64encode(f.read()).decode("ascii")
+    if media:
+        bundle["media_data"] = media
+    return json.dumps(bundle, ensure_ascii=False, indent=2)
+
+
+def import_quiz_bundle(bundle):
+    """Odwrotnosc export_quiz_bundle: zapisuje media na dysk i zwraca quiz."""
+    import base64
+    quiz = json.loads(json.dumps(bundle))
+    blobs = quiz.pop("media_data", None) or {}
+    quiz.pop("format", None)
+    if blobs:
+        os.makedirs(MEDIA_DIR, exist_ok=True)
+        for fname, b64 in blobs.items():
+            safe = os.path.basename(str(fname))
+            ext = os.path.splitext(safe)[1].lower()
+            if ext not in set(MEDIA_EXT.values()):
+                continue
+            try:
+                data = base64.b64decode(b64)
+            except Exception:
+                continue
+            if len(data) > MEDIA_MAX_MB * 1024 * 1024:
+                continue
+            with open(os.path.join(MEDIA_DIR, safe), "wb") as f:
+                f.write(data)
+    return quiz
+
+
+def save_media(data_url, orig_name=""):
+    """Zapisuje plik przeslany jako data:URL. Zwraca (nazwa, typ) albo blad."""
+    import base64
+    import hashlib
+    if not data_url.startswith("data:"):
+        raise ValueError("bad payload")
+    head, _, b64 = data_url.partition(",")
+    mime = head[5:].split(";")[0].strip().lower()
+    ext = MEDIA_EXT.get(mime)
+    if not ext:
+        raise ValueError("unsupported type")
+    raw = base64.b64decode(b64)
+    if len(raw) > MEDIA_MAX_MB * 1024 * 1024:
+        raise ValueError("too large")
+    os.makedirs(MEDIA_DIR, exist_ok=True)
+    digest = hashlib.sha1(raw).hexdigest()[:16]
+    fname = digest + ext
+    with open(os.path.join(MEDIA_DIR, fname), "wb") as f:
+        f.write(raw)
+    kind = "video" if mime.startswith("video/") else "image"
+    return fname, kind
+
+
 def build_cards_pdf(count=None):
     """Tworzy w pamieci PDF z kartami ArUco (jedna karta na strone A4).
     Domyslnie karty dla aktualnej listy uczniow; jesli lista pusta lub podano
@@ -208,7 +318,10 @@ def export_results():
 
 # --------------------------- handler ---------------------------
 class Handler(BaseHTTPRequestHandler):
-    server_version = "QuizScanner/1.0"
+    server_version = "QuizScanner"
+    # HTTP/1.1 = trwale polaczenia. Bez tego kazde zapytanie zrywa polaczenie,
+    # co bardzo spowalnia odpytywanie stanu przez panel i tablice.
+    protocol_version = "HTTP/1.1"
 
     def log_message(self, *args):
         pass  # cisza w konsoli
@@ -267,6 +380,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
         self.send_header("Cache-Control", "no-store")
+        # Strumien nie ma Content-Length -- musi zamykac polaczenie na koniec.
+        self.send_header("Connection", "close")
+        self.close_connection = True
         self.end_headers()
         try:
             while True:
@@ -339,6 +455,27 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send_error(404, "Brak quizu")
         if path == "/api/roster":
             return self.send_json(load_roster())
+        if path == "/api/settings":
+            return self.send_json(settings)
+        if path.startswith("/media/"):
+            fn = os.path.basename(path[len("/media/"):])
+            return self.send_file(os.path.join(MEDIA_DIR, fn))
+        if path == "/api/quiz/export":
+            name = query.get("name", [""])[0]
+            try:
+                quiz = read_quiz(name)
+            except FileNotFoundError:
+                return self.send_error(404, "Brak quizu")
+            body = export_quiz_bundle(quiz).encode("utf-8")
+            fname = safe_name(name) + ".quiz"
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Disposition",
+                             f'attachment; filename="{fname}"')
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if path == "/api/meta":
             return self.send_json({
                 "lan_ip": lan_ip(),
@@ -370,6 +507,10 @@ class Handler(BaseHTTPRequestHandler):
                 session.reset_scores()
             elif action == "speed_bonus":
                 session.set_speed_bonus(data.get("value", False))
+            elif action == "auto_mode":
+                session.set_auto_mode(data.get("value", False))
+                if data.get("value") and session.phase == PHASE_IDLE:
+                    session.start_question()   # tryb auto rusza od razu
             return self.send_json({"ok": True, "state": session.state(full=True)})
 
         if path == "/api/quiz":
@@ -401,17 +542,70 @@ class Handler(BaseHTTPRequestHandler):
             p = export_results()
             return self.send_json({"ok": True, "path": p})
 
+        if path == "/api/settings":
+            changed_cam = ("camera" in data and
+                           str(data["camera"]) != str(settings.get("camera")))
+            for k in DEFAULT_SETTINGS:
+                if k in data:
+                    settings[k] = data[k]
+            save_settings()
+            apply_settings()
+            if changed_cam:
+                restart_camera()
+            return self.send_json({"ok": True, "settings": settings})
+
+        if path == "/api/media":
+            try:
+                fname, kind = save_media(data.get("data", ""), data.get("name", ""))
+            except ValueError as e:
+                return self.send_json({"ok": False, "error": str(e)}, code=400)
+            return self.send_json({"ok": True, "file": fname, "type": kind})
+
+        if path == "/api/quiz/import":
+            bundle = data.get("quiz")
+            name = safe_name(data.get("name", "") or (bundle or {}).get("title", ""))
+            if not isinstance(bundle, dict) or "questions" not in bundle:
+                return self.send_json({"ok": False}, code=400)
+            quiz = import_quiz_bundle(bundle)
+            write_quiz(name, quiz)
+            return self.send_json({"ok": True, "name": name})
+
         return self.send_error(404, "Nie znaleziono")
 
 
-def build_server(camera=0, port=8000, host="0.0.0.0", no_camera=False):
+def apply_settings():
+    """Przenosi ustawienia do dzialajacych obiektow (sesja, skaner)."""
+    session.set_only_known(bool(settings.get("only_known", True)))
+    if scanner:
+        scanner.mirror = bool(settings.get("mirror", True))
+        scanner.only_known = bool(settings.get("only_known", True))
+
+
+def restart_camera():
+    """Zatrzymuje obecny watek kamery i uruchamia nowy z aktualnym zrodlem."""
+    global scanner
+    if scanner:
+        scanner.stop()
+        scanner = None
+    scanner = CameraScanner(session, camera=settings.get("camera", "0"),
+                            mirror=bool(settings.get("mirror", True)),
+                            only_known=bool(settings.get("only_known", True)))
+    scanner.start()
+
+
+def build_server(camera=None, port=8000, host="0.0.0.0", no_camera=False):
     """Przygotowuje sesje, watek kamery i serwer HTTP. Zwraca obiekt httpd
     (jeszcze nie wystartowany). Uzywane zarowno przez CLI (main), jak i przez
     launcher uruchamiajacy serwer w tym samym procesie (dziala w .exe)."""
     global scanner
 
     _seed_data()
+    load_settings()
+    if camera is not None:          # jawny wybor z linii polecen ma pierwszenstwo
+        settings["camera"] = str(camera)
     session.set_roster(load_roster())
+    session.set_only_known(bool(settings.get("only_known", True)))
+    session.start_auto_engine()
 
     quizzes = list_quizzes()
     if quizzes:
@@ -421,7 +615,9 @@ def build_server(camera=0, port=8000, host="0.0.0.0", no_camera=False):
             pass
 
     if not no_camera:
-        scanner = CameraScanner(session, camera=camera)
+        scanner = CameraScanner(session, camera=settings.get("camera", "0"),
+                                mirror=bool(settings.get("mirror", True)),
+                                only_known=bool(settings.get("only_known", True)))
         scanner.start()
 
     httpd = ThreadingHTTPServer((host, port), Handler)
@@ -430,18 +626,21 @@ def build_server(camera=0, port=8000, host="0.0.0.0", no_camera=False):
 
 
 def stop_server(httpd):
-    """Zatrzymuje serwer i watek kamery."""
+    """Zatrzymuje serwer, watek kamery i silnik trybu automatycznego."""
     global scanner
     if scanner:
         scanner.stop()
         scanner = None
+    session.stop_auto_engine()
     if httpd:
         httpd.shutdown()
 
 
 def main():
     ap = argparse.ArgumentParser(description="Serwer QuizScanner")
-    ap.add_argument("--camera", type=int, default=0)
+    ap.add_argument("--camera", default=None,
+                    help="Numer kamery (0, 1, ...) albo adres strumienia "
+                         "z telefonu, np. http://192.168.1.50:8080/video")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--no-browser", action="store_true")

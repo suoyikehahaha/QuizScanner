@@ -27,7 +27,8 @@ from collections import deque, Counter
 import cv2
 import numpy as np
 
-from aruco_common import make_detector, answer_from_corners
+from aruco_common import (make_detector, answer_from_corners,
+                          marker_is_black_and_white)
 
 
 # Kolory (BGR) dla poszczegolnych odpowiedzi -- czytelny overlay.
@@ -47,22 +48,33 @@ class QuizScanEngine:
     przy obracaniu karty.
     """
 
-    def __init__(self, stable_frames=6):
-        self.detector = make_detector()
+    def __init__(self, stable_frames=6, allowed_ids=None, strict=True):
+        self.detector = make_detector(strict=strict)
         self.stable_frames = stable_frames
+        self.allowed_ids = set(allowed_ids) if allowed_ids else None
+        self.check_contrast = strict
         self._history = {}   # id -> deque ostatnich odczytow
         self.stable = {}     # id -> potwierdzona odpowiedz
 
     def process(self, frame_bgr):
-        """Przetwarza jedna klatke. Zwraca liste (id, odpowiedz, rogi)."""
+        """Przetwarza jedna klatke. Zwraca liste (id, odpowiedz, rogi).
+
+        Odrzuca wykrycia, ktore nie wygladaja na wydrukowana karte:
+        spoza dozwolonej listy ID albo bez wyraznego czarno-bialego wzoru.
+        """
         gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = self.detector.detectMarkers(gray)
         detections = []
         if ids is not None:
             for c, i in zip(corners, ids.flatten()):
+                mid = int(i)
+                if self.allowed_ids is not None and mid not in self.allowed_ids:
+                    continue
+                if self.check_contrast and not marker_is_black_and_white(gray, c):
+                    continue
                 ans = answer_from_corners(c)
-                detections.append((int(i), ans, c.reshape(4, 2)))
-                self._update(int(i), ans)
+                detections.append((mid, ans, c.reshape(4, 2)))
+                self._update(mid, ans)
         return detections
 
     def _update(self, mid, ans):

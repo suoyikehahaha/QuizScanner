@@ -40,12 +40,52 @@ def get_dictionary():
     return cv2.aruco.getPredefinedDictionary(getattr(cv2.aruco, DICT_NAME))
 
 
-def make_detector():
-    """Tworzy detektor markerow z domyslnymi parametrami."""
+def make_detector(strict=True):
+    """Tworzy detektor markerow.
+
+    strict=True zaostrza kryteria, zeby przypadkowe wzory w tle (plakaty,
+    okladki, kratka na ubraniu) nie byly brane za karty odpowiedzi.
+    """
     params = cv2.aruco.DetectorParameters()
     # Subpikselowe dopracowanie rogow -> stabilniejszy odczyt obrotu.
     params.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
+    if strict:
+        # Mniejsza tolerancja bledow bitowych: marker musi byc odczytany
+        # niemal bezblednie, zamiast "domyslany" przez korekcje bledow.
+        params.errorCorrectionRate = 0.35
+        # Ramka markera musi byc naprawde czarna.
+        params.maxErroneousBitsInBorderRate = 0.2
+        # Odrzuca drobne smieci i wymaga wyrazniejszego ksztaltu kwadratu.
+        params.minMarkerPerimeterRate = 0.035
+        params.polygonalApproxAccuracyRate = 0.04
+        # Wyrazniejszy kontrast czarne/biale wewnatrz markera.
+        params.minOtsuStdDev = 6.0
     return cv2.aruco.ArucoDetector(get_dictionary(), params)
+
+
+def marker_is_black_and_white(gray, corners, min_contrast=55):
+    """Sprawdza, czy w obszarze markera faktycznie jest czarno-bialy wzor.
+
+    Kolorowe/szare obrazki z tla potrafia czasem przejsc detekcje. Prawdziwy
+    wydrukowany marker ma silny rozdzial jasnosci: ciemne i jasne pola.
+    Zwraca False, gdy kontrast jest za slaby (czyli to nie jest karta).
+    """
+    pts = np.asarray(corners, dtype=np.float32).reshape(4, 2)
+    side = 40
+    dst = np.array([[0, 0], [side - 1, 0], [side - 1, side - 1], [0, side - 1]],
+                   dtype=np.float32)
+    try:
+        M = cv2.getPerspectiveTransform(pts, dst)
+        patch = cv2.warpPerspective(gray, M, (side, side))
+    except cv2.error:
+        return False
+    # Prog Otsu dzieli pola na ciemne i jasne; liczymy realny rozstep jasnosci.
+    thr, _ = cv2.threshold(patch, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    dark = patch[patch <= thr]
+    light = patch[patch > thr]
+    if dark.size < 20 or light.size < 20:
+        return False
+    return float(light.mean() - dark.mean()) >= min_contrast
 
 
 def answer_from_corners(corners):

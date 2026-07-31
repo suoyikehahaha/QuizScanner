@@ -9,7 +9,7 @@
 
 Set-Location $PSScriptRoot
 
-$Version = "1.3.0"
+$Version = "2.0.0"
 $Name = "QuizScanner-v$Version"
 
 Write-Host "Buduje $Name.exe ..." -ForegroundColor Cyan
@@ -19,6 +19,7 @@ python -m PyInstaller --onefile --noconsole --name $Name `
   --add-data "students.csv;." `
   --hidden-import generate_cards `
   --hidden-import aruco_common `
+  --hidden-import i18n `
   --noconfirm launcher.py
 
 if (Test-Path "dist\$Name.exe") {
