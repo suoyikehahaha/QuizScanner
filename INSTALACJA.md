@@ -10,27 +10,28 @@ pierwszego quizu. Wybierz swój system.
 ### 1. Pobierz program
 1. Wejdź na stronę **Releases** repozytorium:
    `https://github.com/PiotrKajor/QuizScanner/releases`
-2. W najnowszym wydaniu, w sekcji **Assets**, kliknij **`QuizScanner.exe`**.
+2. W najnowszym wydaniu, w sekcji **Assets**, kliknij plik
+   **`QuizScanner-v…​.exe`** (nazwa zawiera numer wersji, np. `QuizScanner-v1.1.0.exe`).
 3. Plik (~67 MB) trafi do folderu **Pobrane**.
 
 > Repozytorium jest prywatne — pobrać może tylko zalogowany właściciel konta.
-> Aby udostępnić program innym nauczycielom, wyślij im plik `QuizScanner.exe`
+> Aby udostępnić program innym nauczycielom, wyślij im pobrany plik `.exe`
 > bezpośrednio albo zmień repozytorium na publiczne.
 
 ### 2. Przenieś plik w dobre miejsce
-Przenieś `QuizScanner.exe` na **Pulpit** lub do **Dokumentów**.
+Przenieś pobrany plik `.exe` na **Pulpit** lub do **Dokumentów**.
 Program zapisuje quizy i wyniki **obok siebie**, więc nie umieszczaj go w
 `C:\Program Files` (tam nie ma prawa zapisu).
 
 ### 3. Uruchom (pierwszy raz)
-1. Kliknij dwukrotnie **`QuizScanner.exe`**.
+1. Kliknij dwukrotnie pobrany plik **`.exe`**.
 2. Pojawi się okno Windows **„System Windows ochronił Twój komputer"**
    (bo program nie jest podpisany certyfikatem — to normalne dla darmowych aplikacji).
    Kliknij **„Więcej informacji"** → **„Uruchom mimo to"**.
 3. Po chwili (pierwsze uruchomienie ~5–10 s) otworzy się małe okno **QuizScanner**.
 
 > Jeśli antywirus zablokuje plik (fałszywy alarm zdarza się programom z
-> PyInstaller), dodaj `QuizScanner.exe` do wyjątków / „Zezwól na urządzeniu".
+> PyInstaller), dodaj pobrany plik `.exe` do wyjątków / „Zezwól na urządzeniu".
 
 ### 4. Włącz aplikację
 1. W oknie kliknij **„▶ Uruchom"**.
@@ -132,4 +133,4 @@ odpowiedź dawała więcej.
 | Pierwsze uruchomienie długo trwa | Jednoplikowy `.exe` rozpakowuje się przy starcie (kilka sekund). Kolejne uruchomienia są tak samo szybkie. |
 
 Gdzie są dane: quizy w folderze `quizzes/`, lista uczniów `students.csv`,
-wyniki `wyniki_<data>.csv` — wszystko **obok** `QuizScanner.exe`.
+wyniki `wyniki_<data>.csv` — wszystko **obok** pliku programu (`.exe`).

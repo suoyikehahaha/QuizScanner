@@ -20,7 +20,8 @@ Pillow — **bez Flask i bez żadnych instalacji**, jeśli masz już te trzy pak
 
 ## Instalacja
 
-- **Windows (najprościej):** pobierz **`QuizScanner.exe`** z zakładki
+- **Windows (najprościej):** pobierz plik **`QuizScanner-v…​.exe`** (nazwa z
+  numerem wersji) z zakładki
   [Releases](https://github.com/PiotrKajor/QuizScanner/releases), przenieś na
   Pulpit i kliknij dwukrotnie. Bez instalowania Pythona.
 - **Linux / macOS:** `./install.sh`, potem `./start.sh`.
