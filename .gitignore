@@ -8,3 +8,11 @@ wyniki_*.csv
 
 # Wygenerowane karty do druku (odtwarzalne przez generate_cards.py)
 karty/
+
+# Artefakty budowania .exe (PyInstaller). Gotowy plik idzie do Releases.
+build/
+dist/
+*.spec
+
+# Skrypt startowy generowany przez install.sh (Linux/macOS)
+start.sh

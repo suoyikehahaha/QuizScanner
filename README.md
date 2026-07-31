@@ -18,7 +18,16 @@ Pillow — **bez Flask i bez żadnych instalacji**, jeśli masz już te trzy pak
   szybkość (kto pierwszy, ten więcej) można włączyć przełącznikiem w panelu.
 - Jest ranking i podium.
 
-## Szybki start
+## Instalacja
+
+- **Windows (najprościej):** pobierz **`QuizScanner.exe`** z zakładki
+  [Releases](https://github.com/PiotrKajor/QuizScanner/releases), przenieś na
+  Pulpit i kliknij dwukrotnie. Bez instalowania Pythona.
+- **Linux / macOS:** `./install.sh`, potem `./start.sh`.
+- **Pełna instrukcja krok po kroku** (ze zrzutami sytuacji, zaporą, kamerą i
+  rozwiązywaniem problemów): **[INSTALACJA.md](INSTALACJA.md)**.
+
+## Szybki start (ze źródeł)
 
 ```bash
 pip install -r requirements.txt      # tylko jeśli czegoś brakuje

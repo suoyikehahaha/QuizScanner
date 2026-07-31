@@ -1,0 +1,134 @@
+# Instalacja i obsługa QuizScanner — krok po kroku
+
+Ten przewodnik prowadzi za rękę od pobrania pliku do przeprowadzenia
+pierwszego quizu. Wybierz swój system.
+
+---
+
+## A. Windows — najprościej (plik `.exe`, bez instalowania niczego)
+
+### 1. Pobierz program
+1. Wejdź na stronę **Releases** repozytorium:
+   `https://github.com/PiotrKajor/QuizScanner/releases`
+2. W najnowszym wydaniu, w sekcji **Assets**, kliknij **`QuizScanner.exe`**.
+3. Plik (~67 MB) trafi do folderu **Pobrane**.
+
+> Repozytorium jest prywatne — pobrać może tylko zalogowany właściciel konta.
+> Aby udostępnić program innym nauczycielom, wyślij im plik `QuizScanner.exe`
+> bezpośrednio albo zmień repozytorium na publiczne.
+
+### 2. Przenieś plik w dobre miejsce
+Przenieś `QuizScanner.exe` na **Pulpit** lub do **Dokumentów**.
+Program zapisuje quizy i wyniki **obok siebie**, więc nie umieszczaj go w
+`C:\Program Files` (tam nie ma prawa zapisu).
+
+### 3. Uruchom (pierwszy raz)
+1. Kliknij dwukrotnie **`QuizScanner.exe`**.
+2. Pojawi się okno Windows **„System Windows ochronił Twój komputer"**
+   (bo program nie jest podpisany certyfikatem — to normalne dla darmowych aplikacji).
+   Kliknij **„Więcej informacji"** → **„Uruchom mimo to"**.
+3. Po chwili (pierwsze uruchomienie ~5–10 s) otworzy się małe okno **QuizScanner**.
+
+> Jeśli antywirus zablokuje plik (fałszywy alarm zdarza się programom z
+> PyInstaller), dodaj `QuizScanner.exe` do wyjątków / „Zezwól na urządzeniu".
+
+### 4. Włącz aplikację
+1. W oknie kliknij **„▶ Uruchom"**.
+2. Windows zapyta o **zaporę sieciową** — zaznacz **„Sieci prywatne"** i kliknij
+   **„Zezwól na dostęp"** (potrzebne, by tablicę dało się otworzyć na innym
+   urządzeniu w sieci; do pracy na jednym komputerze też kliknij Zezwól).
+3. Automatycznie otworzy się przeglądarka z **panelem nauczyciela**.
+
+Gotowe. Przejdź do sekcji **[Pierwszy quiz](#pierwszy-quiz)**.
+
+---
+
+## B. Linux / macOS (potrzebny Python)
+
+Plik `.exe` działa tylko na Windows. Na Linux/macOS instaluje się ze źródeł.
+
+### 1. Pobierz projekt
+- Na stronie repozytorium: **Code → Download ZIP**, rozpakuj.
+- Albo w terminalu: `git clone https://github.com/PiotrKajor/QuizScanner.git`
+
+### 2. Zainstaluj
+W terminalu, w folderze projektu:
+```bash
+chmod +x install.sh
+./install.sh
+```
+Skrypt utworzy środowisko `.venv`, zainstaluje zależności i przygotuje `start.sh`.
+
+Jeśli brakuje Pythona:
+- **Ubuntu/Debian:** `sudo apt install python3 python3-venv python3-pip`
+- **Fedora:** `sudo dnf install python3 python3-pip`
+- **macOS:** `brew install python`
+
+### 3. Uruchom
+```bash
+./start.sh
+```
+Otworzy się przeglądarka z panelem nauczyciela. Inna kamera: `./start.sh --camera 1`.
+
+---
+
+## C. Windows ze źródeł (alternatywa dla `.exe`)
+
+Jeśli wolisz nie używać gotowego pliku: zainstaluj Pythona z
+[python.org](https://www.python.org/downloads/) (zaznacz **„Add Python to PATH"**),
+potem dwuklik w **`install-windows.bat`**. Po instalacji uruchamiaj przez
+**`Uruchom.bat`** lub `python launcher.py`.
+
+---
+
+## Pierwszy quiz
+
+### 1. Przygotuj pytania
+W panelu nauczyciela kliknij **„✏️ Edytor"**. Możesz użyć gotowego
+`Przykladowy quiz` albo utworzyć własny (tytuł, pytania, 4 odpowiedzi,
+zaznacz poprawną, ustaw czas i punkty). Zapisz.
+
+### 2. Wpisz uczniów i wydrukuj karty
+1. W edytorze, zakładka **„Uczniowie"** — wpisz listę klasy. **ID = numer na
+   karcie** ucznia. Zapisz.
+2. Wygeneruj karty do druku (wymaga wersji ze źródeł lub Pythona):
+   ```bash
+   python generate_cards.py --names students.csv
+   ```
+   Powstanie folder `karty/` z plikami PNG i zbiorczym `karty.pdf`
+   (jedna karta na stronę A4). Wydrukuj i rozdaj.
+
+> W wersji `.exe` plik `students.csv` znajdziesz **obok programu** — możesz go
+> edytować, a karty wygenerować na dowolnym komputerze z Pythonem.
+
+### 3. Przeprowadź quiz
+1. Na rzutniku otwórz **Tablicę** (przycisk „📺 Tablica" albo adres
+   `http://localhost:8000/board`).
+2. W panelu nauczyciela: **„▶ Start pytania"**.
+3. Uczniowie podnoszą karty, obracając **wybraną literę (A/B/C/D) do góry**.
+   Kamera odczytuje wszystkich naraz — na żywo widać, ile osób odpowiedziało.
+4. **„✓ Pokaż wynik"** — tablica pokazuje poprawną odpowiedź i rozkład, punkty
+   się naliczają.
+5. **„Następne ▶"** — kolejne pytanie. Po ostatnim pojawia się ranking.
+
+**Punkty za szybkość** (przełącznik w panelu): domyślnie **wyłączone** —
+każda poprawna odpowiedź warta tyle samo. Włącz, jeśli chcesz, by szybsza
+odpowiedź dawała więcej.
+
+---
+
+## Rozwiązywanie problemów
+
+| Problem | Rozwiązanie |
+|---|---|
+| „System Windows ochronił Twój komputer" | „Więcej informacji" → „Uruchom mimo to". Program jest niepodpisany, to normalne. |
+| Antywirus usuwa `.exe` | Dodaj do wyjątków. To fałszywy alarm typowy dla PyInstaller. |
+| „Kamera niedostępna" | Inny numer kamery w oknie (0/1/2). Windows: Ustawienia → Prywatność → Kamera → zezwól aplikacjom klasycznym. |
+| Kamera nie czyta kart | Lepsze światło, marker min. ~8 cm, matowy papier bez folii, karta bliżej/prostopadle do kamery. |
+| Tablica nie otwiera się na innym urządzeniu | Użyj adresu „Tablica w sieci" z panelu; oba urządzenia w tej samej sieci Wi-Fi; w zaporze zezwól na sieci prywatne. |
+| „Nie udało się uruchomić na porcie" | Port zajęty — wpisz w oknie inny (np. 8080). |
+| Nie zapisują się quizy / wyniki | Przenieś `.exe` do folderu z prawem zapisu (Pulpit, Dokumenty), nie do `Program Files`. |
+| Pierwsze uruchomienie długo trwa | Jednoplikowy `.exe` rozpakowuje się przy starcie (kilka sekund). Kolejne uruchomienia są tak samo szybkie. |
+
+Gdzie są dane: quizy w folderze `quizzes/`, lista uczniów `students.csv`,
+wyniki `wyniki_<data>.csv` — wszystko **obok** `QuizScanner.exe`.

@@ -20,7 +20,9 @@ import argparse
 import json
 import os
 import re
+import shutil
 import socket
+import sys
 import threading
 import time
 import webbrowser
@@ -30,14 +32,42 @@ from urllib.parse import urlparse, parse_qs
 from quiz_session import QuizSession
 from camera_worker import CameraScanner
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-WEB_DIR = os.path.join(BASE_DIR, "web")
-QUIZ_DIR = os.path.join(BASE_DIR, "quizzes")
-ROSTER_JSON = os.path.join(BASE_DIR, "roster.json")
-STUDENTS_CSV = os.path.join(BASE_DIR, "students.csv")
+# Sciezki dzialaja tak samo z kodu zrodlowego, jak i w spakowanym .exe
+# (PyInstaller). RES_DIR = zasoby tylko-do-odczytu (web/), DATA_DIR =
+# folder zapisywalny obok programu (quizy, roster, wyniki).
+if getattr(sys, "frozen", False):
+    RES_DIR = sys._MEIPASS                       # rozpakowane zasoby exe
+    DATA_DIR = os.path.dirname(sys.executable)   # folder z plikiem .exe
+else:
+    RES_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATA_DIR = RES_DIR
+
+WEB_DIR = os.path.join(RES_DIR, "web")
+QUIZ_DIR = os.path.join(DATA_DIR, "quizzes")
+ROSTER_JSON = os.path.join(DATA_DIR, "roster.json")
+STUDENTS_CSV = os.path.join(DATA_DIR, "students.csv")
+
+
+def _seed_data():
+    """Przy pierwszym uruchomieniu .exe kopiuje domyslne dane (quizy,
+    lista uczniow) do zapisywalnego folderu obok programu."""
+    if not getattr(sys, "frozen", False):
+        return
+    try:
+        if not os.path.isdir(QUIZ_DIR):
+            src = os.path.join(RES_DIR, "quizzes")
+            if os.path.isdir(src):
+                shutil.copytree(src, QUIZ_DIR)
+        if not os.path.exists(STUDENTS_CSV):
+            src = os.path.join(RES_DIR, "students.csv")
+            if os.path.exists(src):
+                shutil.copy(src, STUDENTS_CSV)
+    except Exception:
+        pass
+
 
 session = QuizSession()
-scanner = None  # ustawiany w main()
+scanner = None  # ustawiany przy starcie serwera
 
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -132,7 +162,7 @@ def export_results():
     import csv
     import datetime as dt
     stamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = os.path.join(BASE_DIR, f"wyniki_{stamp}.csv")
+    path = os.path.join(DATA_DIR, f"wyniki_{stamp}.csv")
     with session.lock:
         board = session.leaderboard()
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -324,8 +354,42 @@ class Handler(BaseHTTPRequestHandler):
         return self.send_error(404, "Nie znaleziono")
 
 
-def main():
+def build_server(camera=0, port=8000, host="0.0.0.0", no_camera=False):
+    """Przygotowuje sesje, watek kamery i serwer HTTP. Zwraca obiekt httpd
+    (jeszcze nie wystartowany). Uzywane zarowno przez CLI (main), jak i przez
+    launcher uruchamiajacy serwer w tym samym procesie (dziala w .exe)."""
     global scanner
+
+    _seed_data()
+    session.set_roster(load_roster())
+
+    quizzes = list_quizzes()
+    if quizzes:
+        try:
+            session.load_quiz(read_quiz(quizzes[0]), quizzes[0])
+        except Exception:
+            pass
+
+    if not no_camera:
+        scanner = CameraScanner(session, camera=camera)
+        scanner.start()
+
+    httpd = ThreadingHTTPServer((host, port), Handler)
+    httpd.daemon_threads = True
+    return httpd
+
+
+def stop_server(httpd):
+    """Zatrzymuje serwer i watek kamery."""
+    global scanner
+    if scanner:
+        scanner.stop()
+        scanner = None
+    if httpd:
+        httpd.shutdown()
+
+
+def main():
     ap = argparse.ArgumentParser(description="Serwer QuizScanner")
     ap.add_argument("--camera", type=int, default=0)
     ap.add_argument("--port", type=int, default=8000)
@@ -335,33 +399,19 @@ def main():
                     help="Uruchom bez kamery (np. do edycji quizow).")
     args = ap.parse_args()
 
-    # Roster startowy.
-    session.set_roster(load_roster())
-
-    # Wczytaj pierwszy dostepny quiz, jesli jest.
-    quizzes = list_quizzes()
-    if quizzes:
-        try:
-            session.load_quiz(read_quiz(quizzes[0]), quizzes[0])
-        except Exception:
-            pass
-
-    if not args.no_camera:
-        scanner = CameraScanner(session, camera=args.camera)
-        scanner.start()
-
-    httpd = ThreadingHTTPServer((args.host, args.port), Handler)
-    httpd.daemon_threads = True
+    httpd = build_server(camera=args.camera, port=args.port,
+                         host=args.host, no_camera=args.no_camera)
 
     ip = lan_ip()
-    print("=" * 58)
-    print("  QuizScanner uruchomiony")
-    print(f"  Panel nauczyciela : http://localhost:{args.port}/teacher")
-    print(f"  Tablica (rzutnik) : http://localhost:{args.port}/board")
-    print(f"  Edytor pytan      : http://localhost:{args.port}/editor")
-    print(f"  Tablica w sieci   : http://{ip}:{args.port}/board")
-    print("=" * 58)
-    print("  Zatrzymanie: Ctrl+C")
+    if sys.stdout:  # w trybie bezokienkowym (.exe) stdout moze byc None
+        print("=" * 58)
+        print("  QuizScanner uruchomiony")
+        print(f"  Panel nauczyciela : http://localhost:{args.port}/teacher")
+        print(f"  Tablica (rzutnik) : http://localhost:{args.port}/board")
+        print(f"  Edytor pytan      : http://localhost:{args.port}/editor")
+        print(f"  Tablica w sieci   : http://{ip}:{args.port}/board")
+        print("=" * 58)
+        print("  Zatrzymanie: Ctrl+C")
 
     if not args.no_browser:
         threading.Timer(1.0, lambda: webbrowser.open(
@@ -372,9 +422,7 @@ def main():
     except KeyboardInterrupt:
         print("\nZatrzymywanie...")
     finally:
-        if scanner:
-            scanner.stop()
-        httpd.shutdown()
+        stop_server(httpd)
 
 
 if __name__ == "__main__":
