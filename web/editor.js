@@ -199,6 +199,13 @@ $("saveRoster").onclick = async () => {
   syncRoster();
   await api("/api/roster", roster); toast("Zapisano listę uczniów");
 };
+$("cardsBtn").onclick = async () => {
+  syncRoster();
+  if (!Object.keys(roster).length) { toast("Najpierw dodaj uczniów"); return; }
+  await api("/api/roster", roster);           // karty wg aktualnej listy
+  toast("Generuję PDF z kartami…");
+  window.open("/api/cards.pdf", "_blank");
+};
 
 // ---------- start ----------
 (async function init() {

@@ -50,6 +50,9 @@
       <p class="muted">ID = numer markera na wydrukowanej karcie.</p>
       <button class="btn-ok" id="saveRoster" style="width:100%">💾 Zapisz listę</button>
       <button class="btn-ghost" id="addStudent" style="width:100%; margin-top:8px">+ Dodaj ucznia</button>
+      <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+      <button class="btn-primary" id="cardsBtn" style="width:100%">📄 Pobierz karty (PDF)</button>
+      <p class="muted" style="margin-top:8px">Karty do druku dla powyższej listy — jedna na stronę A4.</p>
     </div>
     <div class="main">
       <div class="panel">
@@ -58,8 +61,8 @@
           <tbody id="rosterBody"></tbody>
         </table>
         <p class="muted" style="margin-top:14px">
-          Karty do druku wygenerujesz poleceniem:
-          <code>python generate_cards.py --names students.csv</code>
+          Karty do druku pobierzesz przyciskiem <b>„📄 Pobierz karty (PDF)"</b>
+          z panelu po lewej (jedna karta = jeden uczeń z tej listy).
         </p>
       </div>
     </div>

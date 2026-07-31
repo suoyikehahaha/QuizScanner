@@ -11,6 +11,8 @@ python -m PyInstaller --onefile --noconsole --name QuizScanner `
   --add-data "web;web" `
   --add-data "quizzes;quizzes" `
   --add-data "students.csv;." `
+  --hidden-import generate_cards `
+  --hidden-import aruco_common `
   --noconfirm launcher.py
 
 if (Test-Path "dist\QuizScanner.exe") {

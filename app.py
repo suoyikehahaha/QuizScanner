@@ -158,6 +158,39 @@ def lan_ip():
         return "127.0.0.1"
 
 
+def build_cards_pdf(count=None):
+    """Tworzy w pamieci PDF z kartami ArUco (jedna karta na strone A4).
+    Domyslnie karty dla aktualnej listy uczniow; jesli lista pusta lub podano
+    count -- karty o numerach 0..count-1."""
+    import io
+    import cv2
+    from PIL import Image
+    from aruco_common import get_dictionary
+    from generate_cards import make_card
+
+    dictionary = get_dictionary()
+    with session.lock:
+        roster = dict(session.roster)
+
+    if roster and not count:
+        ids = sorted(roster)
+    else:
+        ids = list(range(count or 30))
+
+    W, H = 1165, 1653              # ~A5 przy 200 DPI
+    marker_px = int(min(W, H) * 0.55)
+    pages = []
+    for mid in ids:
+        card = make_card(mid, roster.get(mid, ""), dictionary, (W, H), marker_px)
+        pages.append(Image.fromarray(cv2.cvtColor(card, cv2.COLOR_BGR2RGB)))
+
+    buf = io.BytesIO()
+    if pages:
+        pages[0].save(buf, format="PDF", save_all=True,
+                      append_images=pages[1:], resolution=200.0)
+    return buf.getvalue()
+
+
 def export_results():
     import csv
     import datetime as dt
@@ -270,6 +303,23 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_file(os.path.join(WEB_DIR, rel))
         if path == "/video_feed":
             return self.stream_mjpeg()
+
+        if path == "/api/cards.pdf":
+            c = query.get("count", [None])[0]
+            c = int(c) if (c and c.isdigit()) else None
+            try:
+                pdf = build_cards_pdf(count=c)
+            except Exception as e:
+                return self.send_error(500, f"Blad generowania kart: {e}")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/pdf")
+            self.send_header("Content-Disposition",
+                             'attachment; filename="karty_QuizScanner.pdf"')
+            self.send_header("Content-Length", str(len(pdf)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(pdf)
+            return
 
         # API
         if path == "/api/state":

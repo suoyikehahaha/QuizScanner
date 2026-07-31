@@ -50,13 +50,12 @@ pip install -r requirements.txt      # tylko jeśli czegoś brakuje
    gotowego `Przykladowy quiz`). W zakładce **Uczniowie** wpisz listę klasy
    (ID = numer na karcie).
 
-3. **Wydrukuj karty**:
+3. **Pobierz i wydrukuj karty** — w edytorze (zakładka Uczniowie) kliknij
+   **„📄 Pobierz karty (PDF)"**: dostaniesz PDF z kartą dla każdego ucznia
+   (jedna na stronę A4). Działa też w wersji `.exe`.
 
-   ```bash
-   python generate_cards.py --names students.csv --out karty
-   ```
-
-   Powstaną pliki PNG i zbiorczy `karty/karty.pdf` (jedna karta na stronę A4).
+   Alternatywnie ze źródeł: `python generate_cards.py --names students.csv --out karty`
+   (tworzy PNG + `karty/karty.pdf`).
 
 4. **Prowadź quiz** — w **Panelu nauczyciela** wczytaj quiz i steruj:
    Start pytania → uczniowie podnoszą karty → Pokaż wynik → Następne.

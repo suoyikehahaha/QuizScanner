@@ -134,7 +134,10 @@ def _selftest():
         time.sleep(1.0)
         st = json.load(urllib.request.urlopen("http://127.0.0.1:8061/api/state"))
         html = urllib.request.urlopen("http://127.0.0.1:8061/teacher").read()
-        msg = f"OK quiz={st['quiz_title']} total={st['total']} teacher_bytes={len(html)}"
+        pdf = urllib.request.urlopen("http://127.0.0.1:8061/api/cards.pdf?count=3").read()
+        pdf_ok = pdf[:4] == b"%PDF"
+        msg = (f"OK quiz={st['quiz_title']} total={st['total']} "
+               f"teacher_bytes={len(html)} cards_pdf_ok={pdf_ok} pdf_bytes={len(pdf)}")
         app.stop_server(httpd)
     except Exception:
         msg = "FAIL\n" + traceback.format_exc()

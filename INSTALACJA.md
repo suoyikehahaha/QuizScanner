@@ -88,18 +88,19 @@ W panelu nauczyciela kliknij **„✏️ Edytor"**. Możesz użyć gotowego
 `Przykladowy quiz` albo utworzyć własny (tytuł, pytania, 4 odpowiedzi,
 zaznacz poprawną, ustaw czas i punkty). Zapisz.
 
-### 2. Wpisz uczniów i wydrukuj karty
+### 2. Wpisz uczniów i pobierz karty
 1. W edytorze, zakładka **„Uczniowie"** — wpisz listę klasy. **ID = numer na
-   karcie** ucznia. Zapisz.
-2. Wygeneruj karty do druku (wymaga wersji ze źródeł lub Pythona):
-   ```bash
-   python generate_cards.py --names students.csv
-   ```
-   Powstanie folder `karty/` z plikami PNG i zbiorczym `karty.pdf`
-   (jedna karta na stronę A4). Wydrukuj i rozdaj.
+   karcie** ucznia.
+2. Kliknij **„📄 Pobierz karty (PDF)"**. Pobierze się gotowy plik PDF z osobną
+   kartą dla każdego ucznia (jedna karta na stronę A4). Wydrukuj i rozdaj.
+   **Działa też z `.exe`** — nie trzeba Pythona.
 
-> W wersji `.exe` plik `students.csv` znajdziesz **obok programu** — możesz go
-> edytować, a karty wygenerować na dowolnym komputerze z Pythonem.
+> **Gotowy przykładowy zestaw** 40 kart (bez imion, numery 0–39) jest też do
+> pobrania w [Releases](https://github.com/PiotrKajor/QuizScanner/releases)
+> jako `karty_przykladowe_40.pdf`.
+>
+> Wersja ze źródeł ma dodatkowo skrypt:
+> `python generate_cards.py --names students.csv` (tworzy PNG + `karty.pdf`).
 
 ### 3. Przeprowadź quiz
 1. Na rzutniku otwórz **Tablicę** (przycisk „📺 Tablica" albo adres
