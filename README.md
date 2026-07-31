@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="wersja" src="https://img.shields.io/badge/wersja-1.2.0-e2603f">
+  <img alt="wersja" src="https://img.shields.io/badge/wersja-1.3.0-e2603f">
   <img alt="platforma" src="https://img.shields.io/badge/platforma-Windows%20%7C%20Linux%20%7C%20macOS-2f9fb3">
   <img alt="python" src="https://img.shields.io/badge/Python-3.10%2B-4faa6a">
   <img alt="licencja" src="https://img.shields.io/badge/licencja-MIT-8a7bef">

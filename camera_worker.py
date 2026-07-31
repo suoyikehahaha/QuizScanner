@@ -59,29 +59,47 @@ class CameraScanner(threading.Thread):
                 continue
             self.camera_ok = True  # potwierdzenie po pierwszej udanej klatce
 
-            if self.mirror:
-                frame = cv2.flip(frame, 1)
-
             phase = self.session.phase
             # Reset silnika na starcie kazdego nowego pytania.
             if phase == PHASE_QUESTION and self._last_phase != PHASE_QUESTION:
                 self.engine.reset()
             self._last_phase = phase
 
+            # WAZNE: detekcja zawsze na ORYGINALNEJ klatce. Markery ArUco nie sa
+            # symetryczne -- w odbiciu lustrzanym ich wzor nie pasuje do slownika
+            # i wiekszosc kart nie zostalaby wykryta. Lustro sluzy wylacznie
+            # wygodzie patrzenia i jest nakladane dopiero na podglad.
             detections = self.engine.process(frame)
             self.live_count = len(detections)
 
             if phase == PHASE_QUESTION:
                 self.session.record_answers(self.engine.snapshot())
 
+            # Podglad: opcjonalne lustro + przeliczenie wspolrzednych rogow,
+            # zeby ramki trafialy w karty, a podpisy pozostaly czytelne.
+            if self.mirror:
+                view = cv2.flip(frame, 1)
+                w = view.shape[1]
+                detections = [(mid, ans, self._mirror_corners(corners, w))
+                              for mid, ans, corners in detections]
+            else:
+                view = frame
+
             names = self.session.roster
             for mid, ans, corners in detections:
-                draw_detection(frame, mid, ans, corners, names.get(mid))
+                draw_detection(view, mid, ans, corners, names.get(mid))
 
-            self._banner(frame, phase)
-            self._store(frame)
+            self._banner(view, phase)
+            self._store(view)
 
         cap.release()
+
+    @staticmethod
+    def _mirror_corners(corners, width):
+        """Przenosi rogi markera na obraz odbity w poziomie (x -> W-1-x)."""
+        pts = np.array(corners, dtype=np.float32).reshape(4, 2).copy()
+        pts[:, 0] = (width - 1) - pts[:, 0]
+        return pts
 
     def _banner(self, frame, phase):
         label = {

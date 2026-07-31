@@ -9,7 +9,7 @@
 
 Set-Location $PSScriptRoot
 
-$Version = "1.2.0"
+$Version = "1.3.0"
 $Name = "QuizScanner-v$Version"
 
 Write-Host "Buduje $Name.exe ..." -ForegroundColor Cyan

@@ -81,6 +81,13 @@ class QuizScanEngine:
         self.stable.clear()
 
 
+def mirror_corners(corners, width):
+    """Przenosi rogi markera na obraz odbity w poziomie (x -> W-1-x)."""
+    pts = np.array(corners, dtype=np.float32).reshape(4, 2).copy()
+    pts[:, 0] = (width - 1) - pts[:, 0]
+    return pts
+
+
 def draw_detection(frame, mid, ans, corners, name=None):
     """Rysuje obwiednie markera, ID, odpowiedz i wskaznik krawedzi 'do gory'."""
     color = ANSWER_COLORS.get(ans, (0, 0, 0))
@@ -194,17 +201,24 @@ def main():
         ok, frame = cap.read()
         if not ok:
             break
-        if mirror:
-            frame = cv2.flip(frame, 1)
-
+        # Detekcja zawsze na oryginale -- odbity marker ArUco nie pasuje do
+        # slownika i nie zostalby wykryty. Lustro dotyczy tylko podgladu.
         detections = engine.process(frame)
-        live = {}
-        for mid, ans, corners in detections:
-            live[mid] = ans
-            draw_detection(frame, mid, ans, corners, names.get(mid))
+        live = {mid: ans for mid, ans, _ in detections}
 
-        draw_panel(frame, engine, live, names)
-        cv2.imshow(win, frame)
+        if mirror:
+            view = cv2.flip(frame, 1)
+            w = view.shape[1]
+            detections = [(mid, ans, mirror_corners(corners, w))
+                          for mid, ans, corners in detections]
+        else:
+            view = frame
+
+        for mid, ans, corners in detections:
+            draw_detection(view, mid, ans, corners, names.get(mid))
+
+        draw_panel(view, engine, live, names)
+        cv2.imshow(win, view)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):

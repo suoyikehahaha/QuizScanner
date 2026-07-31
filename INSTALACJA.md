@@ -11,7 +11,7 @@ pierwszego quizu. Wybierz swój system.
 1. Wejdź na stronę **Releases** repozytorium:
    `https://github.com/PiotrKajor/QuizScanner/releases`
 2. W najnowszym wydaniu, w sekcji **Assets**, kliknij plik
-   **`QuizScanner-v…​.exe`** (nazwa zawiera numer wersji, np. `QuizScanner-v1.2.0.exe`).
+   **`QuizScanner-v…​.exe`** (nazwa zawiera numer wersji, np. `QuizScanner-v1.3.0.exe`).
 3. Plik (~67 MB) trafi do folderu **Pobrane**.
 
 > Repozytorium jest prywatne — pobrać może tylko zalogowany właściciel konta.
@@ -126,7 +126,8 @@ odpowiedź dawała więcej.
 | „System Windows ochronił Twój komputer" | „Więcej informacji" → „Uruchom mimo to". Program jest niepodpisany, to normalne. |
 | Antywirus usuwa `.exe` | Dodaj do wyjątków. To fałszywy alarm typowy dla PyInstaller. |
 | „Kamera niedostępna" | Inny numer kamery w oknie (0/1/2). Windows: Ustawienia → Prywatność → Kamera → zezwól aplikacjom klasycznym. |
-| Kamera nie czyta kart | Lepsze światło, marker min. ~8 cm, matowy papier bez folii, karta bliżej/prostopadle do kamery. |
+| Kamera nie czyta kart | Lepsze światło, matowy papier bez folii, karta zwrócona płasko do kamery (nie pod ostrym kątem). |
+| Czyta tylko niektóre karty | Błąd naprawiony w wersji **1.3.0** (odbicie lustrzane psuło rozpoznawanie markerów). Pobierz najnowszy plik z Releases. |
 | Tablica nie otwiera się na innym urządzeniu | Użyj adresu „Tablica w sieci" z panelu; oba urządzenia w tej samej sieci Wi-Fi; w zaporze zezwól na sieci prywatne. |
 | „Nie udało się uruchomić na porcie" | Port zajęty — wpisz w oknie inny (np. 8080). |
 | Nie zapisują się quizy / wyniki | Przenieś `.exe` do folderu z prawem zapisu (Pulpit, Dokumenty), nie do `Program Files`. |
