@@ -1,137 +1,34 @@
 """
-Kontrola jakości tekstu: wyszukuje polskie słowa zapisane bez znaków
-diakrytycznych (np. "zrodlo" zamiast "źródło") w plikach projektu.
+Kontrola tekstu: wyszukuje polskie słowa zapisane bez znaków diakrytycznych
+(np. "zrodlo" zamiast "źródło").
 
-Uruchomienie:
+Korzysta z tego samego słownika co tools/fix_polish.py i dopasowuje CAŁE
+wyrazy, więc "pytania" nie jest zgłaszane tylko dlatego, że zawiera "pytan".
+
     python tools/check_polish.py            # raport
-    python tools/check_polish.py --fix      # automatyczna poprawa
+    python tools/check_polish.py --files    # same nazwy plików
 
-Skrypt celowo pomija identyfikatory kodu (nazwy zmiennych i funkcji są po
-angielsku) oraz nazwy plików, które muszą pozostać w ASCII.
+Kod wyjścia: 0 gdy czysto, 1 gdy coś znaleziono (nadaje się do CI).
 """
 
 import argparse
+import io
 import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from polish_words import WORD_MAP, NEVER_TOUCH  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+EXTS = {".py", ".js", ".css", ".html", ".md", ".ps1", ".bat", ".sh", ".json"}
+# Folder tools/ zawiera słownik z formami bez ogonków — z założenia.
+SKIP_DIRS = {".git", "build", "dist", "__pycache__", "karty", "media",
+             ".venv", "tools"}
 
-# Rozszerzenia, które sprawdzamy.
-EXTS = {".py", ".js", ".css", ".html", ".md", ".ps1", ".bat", ".sh", ".json", ".csv"}
-SKIP_DIRS = {".git", "build", "dist", "__pycache__", "karty", "media", ".venv"}
-
-# Słowa, które MUSZĄ zostać w ASCII (nazwy plików, klucze, polecenia).
-PROTECTED = [
-    "przyklad.json", "przyklad", "wyniki_", "karty.pdf", "karty/",
-    "QuizScanner", "quizscanner",
-]
-
-# Mapa: forma bez znaków -> forma poprawna. Kolejność ma znaczenie
-# (dłuższe formy najpierw), żeby nie psuć dłuższych słów.
-WORDS = [
-    ("Zatrzymywanie", "Zatrzymywanie"),  # bez zmian, kotwica
-    ("wspolrzedn", "współrzędn"), ("wspolczyn", "współczyn"), ("wspoln", "wspóln"),
-    ("nastepstw", "następstw"), ("nastepn", "następn"), ("nastepu", "następu"),
-    ("poprzedni", "poprzedni"),
-    ("odpowiedzi", "odpowiedzi"), ("odpowiedz", "odpowiedź"),
-    ("zrodlow", "źródłow"), ("zrodl", "źródł"), ("zrodel", "źródeł"),
-    ("wlasciw", "właściw"), ("wlasn", "własn"), ("wlacz", "włącz"), ("wlaczo", "włączo"),
-    ("wylacz", "wyłącz"),
-    ("dziala", "działa"), ("dzialan", "działan"), ("dzialaj", "działaj"),
-    ("kolejnosc", "kolejność"), ("kolejnosci", "kolejności"),
-    ("polacze", "połącze"), ("polaczo", "połączo"), ("polacz", "połącz"),
-    ("obsluguj", "obsługuj"), ("obslug", "obsług"),
-    ("wiec ", "więc "), ("wiecej", "więcej"),
-    ("ktore", "które"), ("ktora", "która"), ("ktory", "który"),
-    ("ktorych", "których"), ("ktorym", "którym"), ("ktorej", "której"),
-    ("moze", "może"), ("mozna", "można"), ("mozliw", "możliw"),
-    ("czesc", "część"), ("czesci", "części"), ("czest", "częst"),
-    ("wyswietl", "wyświetl"),
-    ("bledn", "błędn"), ("bledow", "błędów"), ("blad", "błąd"), ("bledy", "błędy"),
-    ("blednie", "błędnie"), ("bledu", "błędu"),
-    ("recznie", "ręcznie"), ("reczn", "ręczn"),
-    ("sciezk", "ścieżk"),
-    ("uzytkownik", "użytkownik"), ("uzyc", "użyć"), ("uzywa", "używa"),
-    ("uzyj", "użyj"), ("uzycie", "użycie"),
-    ("jezyk", "język"), ("jezyc", "języc"),
-    ("wybran", "wybran"),
-    ("srodek", "środek"), ("srodk", "środk"), ("srodowisk", "środowisk"),
-    ("zadan", "żadan"), ("zaden", "żaden"),
-    ("wiekszo", "większo"), ("wieksz", "większ"),
-    ("mniejsz", "mniejsz"),
-    ("dlugo", "długo"), ("dlug", "dług"),
-    ("krotk", "krótk"), ("skrot", "skrót"),
-    ("pomoc", "pomoc"),
-    ("obrot", "obrót"), ("obroc", "obróć"), ("obraca", "obraca"),
-    ("gory", "góry"), ("gorn", "górn"),
-    ("dol ", "dół "), ("doln", "doln"),
-    ("liter", "liter"),
-    ("wydruk", "wydruk"), ("drukow", "drukow"),
-    ("ustawien", "ustawień"), ("ustawie", "ustawie"),
-    ("domyslni", "domyślni"), ("domysln", "domyśln"),
-    ("bezpiecz", "bezpiecz"),
-    ("zapisz", "zapisz"), ("zapisu", "zapisu"),
-    ("wczyta", "wczyta"),
-    ("stron", "stron"),
-    ("pytan", "pytań"), ("pytania", "pytania"), ("pytanie", "pytanie"),
-    ("uczen", "uczeń"), ("uczni", "uczni"),
-    ("punkt", "punkt"),
-    ("czas", "czas"),
-    ("swiat", "świat"), ("swietl", "świetl"),
-    ("zamkni", "zamkni"), ("zamyka", "zamyka"),
-    ("sprawdz", "sprawdź"), ("sprawdza", "sprawdza"),
-    ("przeglada", "przeglądа"),
-    ("wylapy", "wyłapy"),
-    ("smieci", "śmieci"),
-    ("falszyw", "fałszyw"),
-    ("znaczk", "znaczk"),
-    ("przelacz", "przełącz"),
-    ("opoznien", "opóźnień"), ("opoznie", "opóźnie"),
-    ("losow", "losow"),
-    ("przerw", "przerw"),
-    ("konc", "końc"), ("koncz", "kończ"),
-    ("wynik", "wynik"),
-    ("zaleznos", "zależnoś"), ("zalezn", "zależn"),
-    ("potrzeb", "potrzeb"),
-    ("brakuj", "brakuj"),
-    ("instrukcj", "instrukcj"),
-    ("aplikacj", "aplikacj"),
-    ("przypadk", "przypadk"),
-    ("wywola", "wywoła"), ("wywolu", "wywołu"),
-    ("ostatecz", "ostatecz"),
-    ("awaryjn", "awaryjn"),
-    ("podglad", "podgląd"), ("podgladu", "podglądu"),
-    ("zeby", "żeby"), ("zebys", "żebyś"),
-    ("juz ", "już "),
-    ("jesli", "jeśli"),
-    ("wszystk", "wszystk"),
-    ("ramk", "ramk"),
-    ("plyn", "płyn"),
-    ("male ", "małe "), ("maly", "mały"), ("mala", "mała"),
-    ("duzy", "duży"), ("duza", "duża"), ("duze", "duże"),
-    ("pozostal", "pozostał"),
-    ("dolacz", "dołącz"),
-    ("wysyla", "wysyła"), ("wyslij", "wyślij"),
-    ("odczyt", "odczyt"),
-    ("wykryc", "wykryć"), ("wykrywa", "wykrywa"),
-    ("czarno-bial", "czarno-biał"), ("bialy", "biały"), ("biale", "białe"),
-    ("bialym", "białym"), ("bial", "biał"),
-    ("czarn", "czarn"),
-    ("kolejk", "kolejk"),
-    ("watek", "wątek"), ("watk", "wątk"),
-    ("petla", "pętla"), ("petli", "pętli"),
-    ("slownik", "słownik"),
-    ("wartosc", "wartość"), ("wartosci", "wartości"),
-    ("zgodn", "zgodn"),
-    ("stabiln", "stabiln"),
-    ("odleglos", "odległoś"),
-    ("kat ", "kąt "), ("katy", "kąty"), ("katow", "kątów"),
-    ("zamrozon", "zamrożon"),
-    ("rozpakow", "rozpakow"),
-    ("wgrywa", "wgrywa"), ("wgra", "wgra"),
-    ("osadzon", "osadzon"),
-]
+PATTERN = re.compile(
+    r"\b(" + "|".join(sorted(WORD_MAP, key=len, reverse=True)) + r")\b",
+    re.IGNORECASE)
 
 
 def iter_files():
@@ -143,28 +40,30 @@ def iter_files():
 
 
 def find_issues(text):
-    """Zwraca listę (linia, słowo bez znaków, propozycja)."""
+    """Zwraca listę (numer linii, słowo, propozycja, fragment linii)."""
     out = []
     for i, line in enumerate(text.splitlines(), 1):
-        low = line.lower()
-        if any(p.lower() in low for p in PROTECTED):
-            continue
-        for bad, good in WORDS:
-            if bad == good:
+        for m in PATTERN.finditer(line):
+            word = m.group(0)
+            if word.lower() in NEVER_TOUCH:
                 continue
-            for m in re.finditer(re.escape(bad), line, re.IGNORECASE):
-                out.append((i, bad, good, line.strip()[:90]))
-                break
+            out.append((i, word, WORD_MAP[word.lower()], line.strip()[:80]))
     return out
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--list-files", action="store_true")
+    ap.add_argument("--files", action="store_true",
+                    help="pokaż tylko nazwy plików")
     args = ap.parse_args()
 
-    total = 0
-    per_file = {}
+    # Wynik wypisujemy w UTF-8 niezależnie od strony kodowej konsoli.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
+    total, per_file = 0, {}
     for path in iter_files():
         try:
             text = open(path, encoding="utf-8").read()
@@ -176,13 +75,17 @@ def main():
             total += len(issues)
 
     for rel in sorted(per_file, key=lambda k: -len(per_file[k])):
-        print(f"{rel}: {len(per_file[rel])} miejsc")
-        if args.list_files:
-            continue
-        for line, bad, good, snippet in per_file[rel][:4]:
-            print(f"    {line:>4}: {bad} -> {good}   | {snippet}")
-    print(f"\nRAZEM: {total} miejsc w {len(per_file)} plikach")
-    return 1 if total else 0
+        print(f"{rel}: {len(per_file[rel])}")
+        if not args.files:
+            for line, bad, good, snippet in per_file[rel][:5]:
+                print(f"    {line:>4}: {bad} -> {good}   | {snippet}")
+
+    if total:
+        print(f"\nZnaleziono {total} miejsc w {len(per_file)} plikach.")
+        print("Napraw poleceniem: python tools/fix_polish.py")
+        return 1
+    print("Czysto — wszystkie polskie słowa mają znaki diakrytyczne.")
+    return 0
 
 
 if __name__ == "__main__":
