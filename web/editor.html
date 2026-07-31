@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QuizScanner — Edytor</title>
+  <link rel="stylesheet" href="/static/common.css">
+  <link rel="stylesheet" href="/static/editor.css">
+</head>
+<body class="editor">
+  <div class="ed-top">
+    <span class="brand"><span class="dot"></span>QuizScanner · Edytor</span>
+    <div class="tabs">
+      <button class="tab active" id="tabQuiz">Quizy</button>
+      <button class="tab" id="tabRoster">Uczniowie</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn-ghost" id="toTeacher">← Panel nauczyciela</button>
+  </div>
+
+  <!-- ZAKLADKA: QUIZY -->
+  <div class="ed-body" id="quizView">
+    <div class="side">
+      <h3>Quizy</h3>
+      <ul class="qlist" id="quizList"></ul>
+      <button class="btn-primary" id="newQuiz" style="width:100%">+ Nowy quiz</button>
+    </div>
+
+    <div class="main">
+      <div class="panel">
+        <label class="field">Tytuł quizu</label>
+        <input class="text" id="quizTitle" placeholder="np. Powtórka z historii">
+        <div class="meta-row" style="margin-top:12px">
+          <button class="btn-ok" id="saveQuiz">💾 Zapisz</button>
+          <button class="btn-ghost" id="dupQuiz">⧉ Duplikuj</button>
+          <button class="btn-danger" id="delQuiz">🗑 Usuń</button>
+          <span class="muted" id="editingName" style="align-self:center"></span>
+        </div>
+      </div>
+
+      <div id="questions"></div>
+      <button class="add-q" id="addQ">+ Dodaj pytanie</button>
+    </div>
+  </div>
+
+  <!-- ZAKLADKA: UCZNIOWIE -->
+  <div class="ed-body hidden" id="rosterView">
+    <div class="side">
+      <h3>Uczniowie</h3>
+      <p class="muted">ID = numer markera na wydrukowanej karcie.</p>
+      <button class="btn-ok" id="saveRoster" style="width:100%">💾 Zapisz listę</button>
+      <button class="btn-ghost" id="addStudent" style="width:100%; margin-top:8px">+ Dodaj ucznia</button>
+    </div>
+    <div class="main">
+      <div class="panel">
+        <table class="roster-table">
+          <thead><tr><th style="width:90px">ID</th><th>Imię i nazwisko</th><th style="width:60px"></th></tr></thead>
+          <tbody id="rosterBody"></tbody>
+        </table>
+        <p class="muted" style="margin-top:14px">
+          Karty do druku wygenerujesz poleceniem:
+          <code>python generate_cards.py --names students.csv</code>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="/static/editor.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "title": "Przykladowy quiz",
+  "questions": [
+    {
+      "text": "Ktore miasto jest stolica Polski?",
+      "answers": ["Krakow", "Warszawa", "Poznan", "Gdansk"],
+      "correct": 1,
+      "time": 20,
+      "points": 1000
+    },
+    {
+      "text": "Ile wynosi 7 x 8?",
+      "answers": ["54", "56", "48", "64"],
+      "correct": 1,
+      "time": 15,
+      "points": 1000
+    },
+    {
+      "text": "Ktora planeta jest najblizej Slonca?",
+      "answers": ["Wenus", "Mars", "Merkury", "Ziemia"],
+      "correct": 2,
+      "time": 20,
+      "points": 1000
+    },
+    {
+      "text": "Kto napisal 'Pana Tadeusza'?",
+      "answers": ["Slowacki", "Mickiewicz", "Sienkiewicz", "Prus"],
+      "correct": 1,
+      "time": 25,
+      "points": 1000
+    }
+  ]
+}

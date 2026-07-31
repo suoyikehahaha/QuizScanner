@@ -1,0 +1,148 @@
+html, body { height: 100%; }
+body.board {
+  background:
+    radial-gradient(1400px 800px at 50% -20%, #20263a 0%, var(--ink) 60%),
+    var(--ink);
+  color: var(--ink-text);
+  height: 100vh;
+  overflow: hidden;
+}
+/* Subtelna siatka punktow - nawiazanie do rastra znacznika ArUco */
+body.board::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(255,255,255,.05) 1.4px, transparent 1.4px);
+  background-size: 26px 26px;
+}
+
+.board-wrap {
+  position: relative; z-index: 2;
+  height: 100vh; display: flex; flex-direction: column;
+  padding: 3vh 4vw 2.4vh;
+}
+
+/* ---- naglowek ---- */
+.board-top { display: flex; align-items: center; gap: 20px; }
+.board-title {
+  font-size: 2.1vh; font-weight: 700; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink-muted);
+}
+.pips { display: flex; gap: 8px; margin: 0 auto; }
+.pips .pip {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--ink-line); background: transparent;
+}
+.pips .pip.done { background: var(--ink-muted); border-color: var(--ink-muted); }
+.pips .pip.cur { background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(226,96,63,.22); }
+.time-chip {
+  font-size: 2.6vh; font-weight: 800; font-variant-numeric: tabular-nums;
+  background: var(--ink-2); border: 1px solid var(--ink-line);
+  padding: 6px 16px; border-radius: 10px; min-width: 3.4em; text-align: center;
+}
+.time-chip.low { color: #fff; background: var(--accent); border-color: var(--accent); }
+
+/* liniowy pasek czasu */
+.time-bar { height: 6px; border-radius: 4px; background: var(--ink-2);
+  margin: 1.6vh 0 0; overflow: hidden; }
+.time-bar > i { display: block; height: 100%; background: var(--accent);
+  transition: width .3s linear; }
+
+/* ---- pytanie ---- */
+.kicker { text-align: center; margin-top: 2.4vh; font-size: 1.9vh;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.qtext {
+  text-align: center; font-size: 4.4vh; font-weight: 800; line-height: 1.16;
+  padding: 1vh 3vw 0; margin: .6vh 0 0;
+}
+
+/* ---- odpowiedzi ---- */
+.answers {
+  flex: 1 1 auto; margin-top: 2.4vh;
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+  gap: 1.8vh 1.8vw; min-height: 0;
+}
+.opt {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 2vw;
+  background: var(--ink-2); border: 1px solid var(--ink-line);
+  border-radius: 16px; padding: 0 2.4vw;
+  font-size: 3.2vh; font-weight: 700;
+  transition: opacity .3s ease, filter .3s ease, background .3s ease, transform .2s ease;
+}
+.opt::before {   /* kolorowy krzybiet z lewej */
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 8px;
+  background: var(--spine);
+}
+.opt .badge { width: 8.4vh; height: 8.4vh; font-size: 4vh; background: var(--spine); }
+.opt .txt { flex: 1; }
+.opt .check { font-size: 4.6vh; opacity: 0; transition: opacity .3s ease; }
+
+.opt.correct {
+  background: color-mix(in srgb, var(--spine) 26%, var(--ink-2));
+  border-color: var(--spine);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--spine) 45%, transparent);
+}
+.opt.correct .check { opacity: 1; }
+.opt.dim { opacity: .32; filter: grayscale(.5); }
+
+.opt .dist {
+  position: absolute; left: 0; bottom: 0; height: 6px; width: 0;
+  background: var(--spine); transition: width .5s ease;
+}
+.opt .count {
+  position: absolute; right: 1.4vw; bottom: 1.2vh;
+  font-size: 2vh; font-weight: 800; background: rgba(0,0,0,.3);
+  padding: 2px 12px; border-radius: 999px;
+}
+
+.opt-A { --spine: var(--a); }
+.opt-B { --spine: var(--b); }
+.opt-C { --spine: var(--c); }
+.opt-D { --spine: var(--d); }
+
+/* ---- stopka ---- */
+.board-foot { display: flex; justify-content: center; align-items: center;
+  gap: 14px; margin-top: 2vh; }
+.chip {
+  background: var(--ink-2); border: 1px solid var(--ink-line);
+  padding: 8px 18px; border-radius: 999px; font-size: 2.2vh; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.chip .badge { width: 1.5em; height: 1.5em; font-size: .9em; }
+
+/* ---- ekrany posrednie ---- */
+.center-screen {
+  position: relative; z-index: 2;
+  height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2.2vh; text-align: center; padding: 5vh;
+}
+.center-screen .kicker { margin: 0; }
+.center-screen h1 { font-size: 5.4vh; margin: 0; font-weight: 800; }
+.center-screen p { font-size: 2.6vh; opacity: .75; margin: 0; }
+
+/* animowana linia skanowania na ekranie oczekiwania */
+.scanline {
+  width: min(60vw, 640px); height: 3px; border-radius: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scan 2.2s ease-in-out infinite;
+}
+@keyframes scan { 0%,100% { opacity:.25; transform: translateY(-14px);} 50% { opacity:1; transform: translateY(14px);} }
+
+/* ---- podium ---- */
+.podium { display: flex; flex-direction: column; gap: 1.2vh; width: min(78vw, 860px); }
+.rank-row {
+  display: flex; align-items: center; gap: 20px;
+  background: var(--ink-2); border: 1px solid var(--ink-line);
+  border-radius: 12px; padding: 1.5vh 2vw; font-size: 2.8vh; font-weight: 700;
+}
+.rank-row .pos {
+  width: 2.4em; height: 2.4em; border-radius: 10px; flex: 0 0 auto;
+  display: grid; place-items: center; font-weight: 800;
+  background: var(--ink-3); font-size: .8em;
+}
+.rank-row .who { flex: 1; text-align: left; }
+.rank-row .pts { font-variant-numeric: tabular-nums; color: var(--accent); }
+.rank-row.top1 { border-color: var(--accent); }
+.rank-row.top1 .pos { background: var(--accent); color: #fff; }
+.rank-row.top2 .pos { background: #9aa0b2; color: #14161f; }
+.rank-row.top3 .pos { background: #b9835a; color: #14161f; }

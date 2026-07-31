@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QuizScanner — Panel nauczyciela</title>
+  <link rel="stylesheet" href="/static/common.css">
+  <link rel="stylesheet" href="/static/teacher.css">
+</head>
+<body class="teacher">
+  <div class="topbar">
+    <span class="brand"><span class="dot"></span>QuizScanner</span>
+    <select id="quizSel" title="Wybierz quiz"></select>
+    <button class="btn-primary" id="loadBtn">Wczytaj</button>
+    <button class="btn-ghost" id="editorBtn">✏️ Edytor</button>
+    <button class="btn-ghost" id="boardBtn">📺 Tablica</button>
+    <div class="spacer"></div>
+    <span class="lan-url" id="lanUrl">Tablica w sieci: —</span>
+    <button class="btn-ghost" id="exportBtn">⬇ Eksport wyników</button>
+  </div>
+
+  <div class="layout">
+    <!-- Lewa kolumna: kamera -->
+    <div class="card">
+      <h3>Podgląd kamery (skaner ArUco)</h3>
+      <img class="cam" id="cam" src="/video_feed" alt="kamera">
+      <div class="cam-note" id="camNote">Uczniowie obracają kartę wybraną literą do góry.</div>
+    </div>
+
+    <!-- Prawa kolumna: sterowanie i wyniki -->
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div class="card qbox">
+        <div class="qhead">
+          <span class="counter" id="counter">—</span>
+          <span class="phase idle" id="phase">idle</span>
+        </div>
+        <div class="qtext-t" id="qtext">Wczytaj quiz, aby rozpocząć.</div>
+        <div class="opts-t" id="opts"></div>
+
+        <div class="stat-row">
+          <div class="stat"><div class="k">Czas</div><div class="v" id="timeLeft">—</div></div>
+          <div class="stat"><div class="k">Odpowiedziało</div><div class="v" id="answered">0</div></div>
+          <div class="stat"><div class="k">A/B/C/D</div><div class="v" id="dist" style="font-size:18px">0/0/0/0</div></div>
+        </div>
+
+        <div class="controls">
+          <button class="btn-ok" id="startBtn">▶ Start pytania</button>
+          <button class="btn-primary" id="revealBtn">✓ Pokaż wynik</button>
+          <button class="btn-ghost" id="prevBtn">◀ Poprzednie</button>
+          <button class="btn-ghost" id="nextBtn">Następne ▶</button>
+          <button class="btn-danger" id="resetBtn">⟲ Reset punktów</button>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input type="checkbox" id="speedToggle">
+            <span class="slider"></span>
+          </label>
+          <div>
+            <div class="lbl">Punkty za szybkość</div>
+            <div class="sub">Wył. = każda poprawna odpowiedź warta tyle samo. Wł. = szybciej daje więcej (styl Kahoot).</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Odpowiedzi uczniów na żywo</h3>
+        <table class="students">
+          <thead><tr><th>ID</th><th>Uczeń</th><th>Odpowiedź</th><th>Punkty</th></tr></thead>
+          <tbody id="studentsBody"><tr><td colspan="4" style="color:#999">Brak odpowiedzi</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Ranking</h3>
+        <ol class="lead" id="lead"><li><span class="n" style="color:#999">Brak wyników</span></li></ol>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/teacher.js"></script>
+</body>
+</html>

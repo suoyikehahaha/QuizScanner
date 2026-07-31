@@ -1,0 +1,87 @@
+/* QuizScanner — wlasny system wizualny "Scan"
+   Sygnatura: ciemny atrament + terrakota, narozniki jak w znaczniku ArUco,
+   litery odpowiedzi w okraglych zetonach (bez kahootowych ksztaltow). */
+:root {
+  /* Chrome / sygnatura */
+  --accent: #e2603f;      /* terrakota */
+  --accent-2: #c44e30;
+  --accent-soft: #fbe9e3;
+
+  /* Atrament (tablica, ciemne powierzchnie) */
+  --ink: #14161f;
+  --ink-2: #1b1e2b;
+  --ink-3: #242938;
+  --ink-line: #313749;
+  --ink-text: #eef0f6;
+  --ink-muted: #8b91a4;
+
+  /* Powierzchnie jasne (panel, edytor) */
+  --paper: #f4f2ec;
+  --card: #ffffff;
+  --line: #e6e2d8;
+  --text: #232733;
+  --muted: #868b99;
+
+  /* Paleta odpowiedzi — wlasna, stonowana */
+  --a: #e8a13c;   /* amber   */
+  --b: #2f9fb3;   /* teal    */
+  --c: #8a7bef;   /* fiolet  */
+  --d: #4faa6a;   /* szalwia */
+
+  --ok: #4faa6a;
+  --bad: #d9573d;
+  --font: "Segoe UI", Inter, system-ui, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  font-weight: 650;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  letter-spacing: .01em;
+  transition: transform .05s ease, filter .15s ease, background .15s ease;
+}
+button:hover { filter: brightness(1.05); }
+button:active { transform: translateY(1px); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-ok { background: var(--ok); color: #fff; }
+.btn-warn { background: #e8a13c; color: #241800; }
+.btn-danger { background: var(--bad); color: #fff; }
+.btn-ghost { background: #ece8df; color: #3a3f4b; }
+.btn-outline { background: transparent; border-color: var(--line); color: var(--text); }
+
+/* Zeton litery odpowiedzi (wspolny znak identyfikacyjny) */
+.badge {
+  display: inline-grid; place-items: center;
+  width: 2em; height: 2em; border-radius: 50%;
+  font-weight: 800; color: #fff; flex: 0 0 auto;
+}
+.badge-A { background: var(--a); }
+.badge-B { background: var(--b); }
+.badge-C { background: var(--c); }
+.badge-D { background: var(--d); }
+
+/* Narozniki "skanera" — dekoracyjna ramka */
+.scan-frame { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+.scan-frame i {
+  position: absolute; width: 42px; height: 42px;
+  border: 3px solid var(--accent); opacity: .5;
+}
+.scan-frame .tl { top: 22px; left: 22px; border-right: 0; border-bottom: 0; }
+.scan-frame .tr { top: 22px; right: 22px; border-left: 0; border-bottom: 0; }
+.scan-frame .bl { bottom: 22px; left: 22px; border-right: 0; border-top: 0; }
+.scan-frame .br { bottom: 22px; right: 22px; border-left: 0; border-top: 0; }

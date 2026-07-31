@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# Dane i wyniki generowane w trakcie dzialania
+roster.json
+wyniki_*.csv
+
+# Wygenerowane karty do druku (odtwarzalne przez generate_cards.py)
+karty/
