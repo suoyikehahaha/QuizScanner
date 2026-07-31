@@ -1,10 +1,10 @@
 """
 Launcher QuizScanner (okno z przyciskami).
 
-Uruchamia serwer aplikacji w TYM SAMYM procesie (w watku), dzieki czemu
-dziala tak samo z kodu zrodlowego (`python launcher.py`), jak i spakowany
+Uruchamia serwer aplikacji w TYM SAMYM procesie (w wątku), dzięki czemu
+działa tak samo z kodu źródłowego (`python launcher.py`), jak i spakowany
 w jeden plik `QuizScanner.exe` (PyInstaller). Daje przyciski do otwierania
-panelu nauczyciela, tablicy i edytora w przegladarce.
+panelu nauczyciela, tablicy i edytora w przeglądarce.
 """
 
 import sys
@@ -83,8 +83,8 @@ class Launcher:
             self.httpd = app.build_server(camera=cam, port=port, host="0.0.0.0")
         except OSError as e:
             messagebox.showerror("QuizScanner",
-                                 f"Nie udalo sie uruchomic na porcie {port}.\n"
-                                 f"Sprobuj innego portu.\n\n{e}")
+                                 f"Nie udało się uruchomić na porcie {port}.\n"
+                                 f"Spróbuj innego portu.\n\n{e}")
             self.httpd = None
             return
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
@@ -92,7 +92,7 @@ class Launcher:
         self.startBtn.config(text="■  Zatrzymaj", bg="#d9573d", activebackground="#c44e30")
         self._set_links(True)
         ip = app.lan_ip()
-        self.status.config(text=f"Dziala · Tablica w sieci: http://{ip}:{port}/board", fg="#4faa6a")
+        self.status.config(text=f"Działa · Tablica w sieci: http://{ip}:{port}/board", fg="#4faa6a")
         self.root.after(900, lambda: self.open("teacher"))
 
     def stop(self):
@@ -119,7 +119,7 @@ def run():
 
 
 def _selftest():
-    """Diagnostyka: startuje serwer, odpytuje sie, zapisuje wynik do pliku."""
+    """Diagnostyka: startuje serwer, odpytuje się, zapisuje wynik do pliku."""
     import json
     import os
     import tempfile

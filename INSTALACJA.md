@@ -86,7 +86,7 @@ potem dwuklik w **`install-windows.bat`**. Po instalacji uruchamiaj przez
 
 ### 1. Przygotuj pytania
 W panelu nauczyciela kliknij **„✏️ Edytor"**. Możesz użyć gotowego
-`Przykladowy quiz` albo utworzyć własny (tytuł, pytania, 4 odpowiedzi,
+`Przykładowy quiz` albo utworzyć własny (tytuł, pytania, 4 odpowiedzi,
 zaznacz poprawną, ustaw czas i punkty). Zapisz.
 
 ### 2. Wpisz uczniów i pobierz karty

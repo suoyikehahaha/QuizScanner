@@ -2,17 +2,17 @@
 Serwer aplikacji QuizScanner (biblioteka standardowa Pythona, bez Flask).
 
 Uruchamia:
-  - watek kamery (skaner ArUco),
+  - wątek kamery (skaner ArUco),
   - serwer HTTP z panelem nauczyciela, tablica i edytorem.
 
-Uzycie:
-  python app.py                 # kamera 0, port 8000, otwiera przegladarke
+Użycie:
+  python app.py                 # kamera 0, port 8000, otwiera przeglądarkę
   python app.py --camera 1 --port 8000 --no-browser
 
 Adresy:
   Panel nauczyciela : http://localhost:PORT/teacher
   Tablica (rzutnik) : http://localhost:PORT/board
-  Edytor pytan      : http://localhost:PORT/editor
+  Edytor pytań      : http://localhost:PORT/editor
   Tablica w sieci   : http://<IP-w-LAN>:PORT/board
 """
 
@@ -32,7 +32,7 @@ from urllib.parse import urlparse, parse_qs
 from quiz_session import QuizSession, PHASE_IDLE
 from camera_worker import CameraScanner
 
-# Sciezki dzialaja tak samo z kodu zrodlowego, jak i w spakowanym .exe
+# Ścieżki działają tak samo z kodu źródłowego, jak i w spakowanym .exe
 # (PyInstaller). RES_DIR = zasoby tylko-do-odczytu (web/), DATA_DIR =
 # folder zapisywalny obok programu (quizy, roster, wyniki).
 if getattr(sys, "frozen", False):
@@ -51,10 +51,10 @@ SETTINGS_JSON = os.path.join(DATA_DIR, "settings.json")
 
 # Ustawienia aplikacji (zapisywane obok programu).
 DEFAULT_SETTINGS = {
-    "lang": "pl",          # jezyk interfejsu: pl / en
+    "lang": "pl",          # język interfejsu: pl / en
     "camera": "0",         # numer kamery albo adres strumienia (telefon)
-    "mirror": True,        # lustro w podgladzie (nie wplywa na rozpoznawanie)
-    "only_known": True,    # akceptuj tylko ID z listy uczniow
+    "mirror": True,        # lustro w podglądzie (nie wpływa na rozpoznawanie)
+    "only_known": True,    # akceptuj tylko ID z listy uczniów
 }
 settings = dict(DEFAULT_SETTINGS)
 
@@ -81,8 +81,8 @@ def save_settings():
 
 
 def _seed_data():
-    """Przy pierwszym uruchomieniu .exe kopiuje domyslne dane (quizy,
-    lista uczniow) do zapisywalnego folderu obok programu."""
+    """Przy pierwszym uruchomieniu .exe kopiuje domyślne dane (quizy,
+    lista uczniów) do zapisywalnego folderu obok programu."""
     if not getattr(sys, "frozen", False):
         return
     try:
@@ -113,7 +113,7 @@ CONTENT_TYPES = {
     ".mp4": "video/mp4", ".webm": "video/webm", ".ogg": "video/ogg",
 }
 
-# Dozwolone typy plikow dodawanych do pytan.
+# Dozwolone typy plików dodawanych do pytań.
 MEDIA_EXT = {
     "image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif",
     "image/webp": ".webp",
@@ -124,7 +124,7 @@ MEDIA_MAX_MB = 40
 
 # --------------------------- pomocnicze ---------------------------
 def safe_name(name):
-    """Sanityzuje nazwe pliku quizu (bez sciezek)."""
+    """Sanityzuje nazwę pliku quizu (bez ścieżek)."""
     return re.sub(r"[^A-Za-z0-9_\- ]", "", (name or "")).strip() or "quiz"
 
 
@@ -158,7 +158,7 @@ def delete_quiz(name):
 
 
 def load_roster():
-    """Roster z roster.json, a jesli brak -- ze students.csv."""
+    """Roster z roster.json, a jeśli brak -- ze students.csv."""
     if os.path.exists(ROSTER_JSON):
         with open(ROSTER_JSON, encoding="utf-8") as f:
             data = json.load(f)
@@ -203,7 +203,7 @@ def lan_ip():
 
 def export_quiz_bundle(quiz):
     """Buduje samodzielny plik .quiz -- z osadzonymi mediami (base64),
-    zeby dalo sie go wyslac innemu nauczycielowi jako jeden plik."""
+    żeby dało się go wysłać innemu nauczycielowi jako jeden plik."""
     import base64
     bundle = json.loads(json.dumps(quiz))  # kopia
     bundle["format"] = "quizscanner/1"
@@ -222,7 +222,7 @@ def export_quiz_bundle(quiz):
 
 
 def import_quiz_bundle(bundle):
-    """Odwrotnosc export_quiz_bundle: zapisuje media na dysk i zwraca quiz."""
+    """Odwrotność export_quiz_bundle: zapisuje media na dysk i zwraca quiz."""
     import base64
     quiz = json.loads(json.dumps(bundle))
     blobs = quiz.pop("media_data", None) or {}
@@ -246,7 +246,7 @@ def import_quiz_bundle(bundle):
 
 
 def save_media(data_url, orig_name=""):
-    """Zapisuje plik przeslany jako data:URL. Zwraca (nazwa, typ) albo blad."""
+    """Zapisuje plik przesłany jako data:URL. Zwraca (nazwa, typ) albo błąd."""
     import base64
     import hashlib
     if not data_url.startswith("data:"):
@@ -269,8 +269,8 @@ def save_media(data_url, orig_name=""):
 
 
 def build_cards_pdf(count=None):
-    """Tworzy w pamieci PDF z kartami ArUco (jedna karta na strone A4).
-    Domyslnie karty dla aktualnej listy uczniow; jesli lista pusta lub podano
+    """Tworzy w pamięci PDF z kartami ArUco (jedna karta na stronę A4).
+    Domyślnie karty dla aktualnej listy uczniów; jeśli lista pusta lub podano
     count -- karty o numerach 0..count-1."""
     import io
     import cv2
@@ -310,7 +310,7 @@ def export_results():
         board = session.leaderboard()
     with open(path, "w", newline="", encoding="utf-8") as f:
         wr = csv.writer(f)
-        wr.writerow(["miejsce", "id", "imie", "punkty"])
+        wr.writerow(["miejsce", "id", "imię", "punkty"])
         for i, row in enumerate(board, 1):
             wr.writerow([i, row["id"], row["name"], row["score"]])
     return path
@@ -319,7 +319,7 @@ def export_results():
 # --------------------------- handler ---------------------------
 class Handler(BaseHTTPRequestHandler):
     server_version = "QuizScanner"
-    # HTTP/1.1 = trwale polaczenia. Bez tego kazde zapytanie zrywa polaczenie,
+    # HTTP/1.1 = trwałe połączenia. Bez tego każde zapytanie zrywa połączenie,
     # co bardzo spowalnia odpytywanie stanu przez panel i tablice.
     protocol_version = "HTTP/1.1"
 
@@ -368,7 +368,7 @@ class Handler(BaseHTTPRequestHandler):
     # ---- MJPEG ----
     def stream_mjpeg(self):
         if scanner is None:
-            # Tryb bez kamery -- pojedynczy statyczny kadr zastepczy.
+            # Tryb bez kamery -- pojedynczy statyczny kadr zastępczy.
             jpg = placeholder_jpeg("Tryb bez kamery")
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")
@@ -380,7 +380,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
         self.send_header("Cache-Control", "no-store")
-        # Strumien nie ma Content-Length -- musi zamykac polaczenie na koniec.
+        # Strumień nie ma Content-Length -- musi zamykać połączenie na koniec.
         self.send_header("Connection", "close")
         self.close_connection = True
         self.end_headers()
@@ -426,7 +426,7 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 pdf = build_cards_pdf(count=c)
             except Exception as e:
-                return self.send_error(500, f"Blad generowania kart: {e}")
+                return self.send_error(500, f"Błąd generowania kart: {e}")
             self.send_response(200)
             self.send_header("Content-Type", "application/pdf")
             self.send_header("Content-Disposition",
@@ -574,7 +574,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def apply_settings():
-    """Przenosi ustawienia do dzialajacych obiektow (sesja, skaner)."""
+    """Przenosi ustawienia do działających obiektów (sesja, skaner)."""
     session.set_only_known(bool(settings.get("only_known", True)))
     if scanner:
         scanner.mirror = bool(settings.get("mirror", True))
@@ -582,7 +582,7 @@ def apply_settings():
 
 
 def restart_camera():
-    """Zatrzymuje obecny watek kamery i uruchamia nowy z aktualnym zrodlem."""
+    """Zatrzymuje obecny wątek kamery i uruchamia nowy z aktualnym źródłem."""
     global scanner
     if scanner:
         scanner.stop()
@@ -594,14 +594,14 @@ def restart_camera():
 
 
 def build_server(camera=None, port=8000, host="0.0.0.0", no_camera=False):
-    """Przygotowuje sesje, watek kamery i serwer HTTP. Zwraca obiekt httpd
-    (jeszcze nie wystartowany). Uzywane zarowno przez CLI (main), jak i przez
-    launcher uruchamiajacy serwer w tym samym procesie (dziala w .exe)."""
+    """Przygotowuje sesje, wątek kamery i serwer HTTP. Zwraca obiekt httpd
+    (jeszcze nie wystartowany). Używane zarówno przez CLI (main), jak i przez
+    launcher uruchamiający serwer w tym samym procesie (działa w .exe)."""
     global scanner
 
     _seed_data()
     load_settings()
-    if camera is not None:          # jawny wybor z linii polecen ma pierwszenstwo
+    if camera is not None:          # jawny wybór z linii poleceń ma pierwszeństwo
         settings["camera"] = str(camera)
     session.set_roster(load_roster())
     session.set_only_known(bool(settings.get("only_known", True)))
@@ -626,7 +626,7 @@ def build_server(camera=None, port=8000, host="0.0.0.0", no_camera=False):
 
 
 def stop_server(httpd):
-    """Zatrzymuje serwer, watek kamery i silnik trybu automatycznego."""
+    """Zatrzymuje serwer, wątek kamery i silnik trybu automatycznego."""
     global scanner
     if scanner:
         scanner.stop()
@@ -636,7 +636,18 @@ def stop_server(httpd):
         httpd.shutdown()
 
 
+def _utf8_console():
+    """Konsola Windows bywa ustawiona na stronę kodową bez polskich znaków.
+    Przełączamy strumienie na UTF-8, żeby komunikaty nie wywracały programu."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main():
+    _utf8_console()
     ap = argparse.ArgumentParser(description="Serwer QuizScanner")
     ap.add_argument("--camera", default=None,
                     help="Numer kamery (0, 1, ...) albo adres strumienia "
@@ -645,19 +656,19 @@ def main():
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--no-browser", action="store_true")
     ap.add_argument("--no-camera", action="store_true",
-                    help="Uruchom bez kamery (np. do edycji quizow).")
+                    help="Uruchom bez kamery (np. do edycji quizów).")
     args = ap.parse_args()
 
     httpd = build_server(camera=args.camera, port=args.port,
                          host=args.host, no_camera=args.no_camera)
 
     ip = lan_ip()
-    if sys.stdout:  # w trybie bezokienkowym (.exe) stdout moze byc None
+    if sys.stdout:  # w trybie bezokienkowym (.exe) stdout może być None
         print("=" * 58)
         print("  QuizScanner uruchomiony")
         print(f"  Panel nauczyciela : http://localhost:{args.port}/teacher")
         print(f"  Tablica (rzutnik) : http://localhost:{args.port}/board")
-        print(f"  Edytor pytan      : http://localhost:{args.port}/editor")
+        print(f"  Edytor pytań      : http://localhost:{args.port}/editor")
         print(f"  Tablica w sieci   : http://{ip}:{args.port}/board")
         print("=" * 58)
         print("  Zatrzymanie: Ctrl+C")

@@ -1,6 +1,6 @@
-/* QuizScanner — wlasny system wizualny "Scan"
-   Sygnatura: ciemny atrament + terrakota, narozniki jak w znaczniku ArUco,
-   litery odpowiedzi w okraglych zetonach (bez kahootowych ksztaltow). */
+/* QuizScanner — własny system wizualny "Scan"
+   Sygnatura: ciemny atrament + terrakota, narożniki jak w znaczniku ArUco,
+   litery odpowiedzi w okrągłych żetonach (bez kahootowych kształtów). */
 :root {
   /* Chrome / sygnatura */
   --accent: #e2603f;      /* terrakota */
@@ -22,11 +22,11 @@
   --text: #232733;
   --muted: #868b99;
 
-  /* Paleta odpowiedzi — wlasna, stonowana */
+  /* Paleta odpowiedzi — własna, stonowana */
   --a: #e8a13c;   /* amber   */
   --b: #2f9fb3;   /* teal    */
   --c: #8a7bef;   /* fiolet  */
-  --d: #4faa6a;   /* szalwia */
+  --d: #4faa6a;   /* szałwia */
 
   --ok: #4faa6a;
   --bad: #d9573d;
@@ -64,7 +64,7 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .btn-ghost { background: #ece8df; color: #3a3f4b; }
 .btn-outline { background: transparent; border-color: var(--line); color: var(--text); }
 
-/* Zeton litery odpowiedzi (wspolny znak identyfikacyjny) */
+/* Żeton litery odpowiedzi (wspólny znak identyfikacyjny) */
 .badge {
   display: inline-grid; place-items: center;
   width: 2em; height: 2em; border-radius: 50%;
@@ -75,10 +75,10 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .badge-C { background: var(--c); }
 .badge-D { background: var(--d); }
 
-/* Logo w naglowku */
+/* Logo w nagłówku */
 .brand-logo { height: 28px; width: 28px; display: inline-block; vertical-align: middle; }
 
-/* Narozniki "skanera" — dekoracyjna ramka */
+/* Narożniki "skanera" — dekoracyjna ramka */
 .scan-frame { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 .scan-frame i {
   position: absolute; width: 42px; height: 42px;

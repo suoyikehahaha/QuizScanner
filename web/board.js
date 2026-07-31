@@ -1,4 +1,4 @@
-// Widok tablicy (rzutnik). Odpytuje /api/state i renderuje faze.
+// Widok tablicy (rzutnik). Odpytuje /api/state i renderuje fazę.
 const LETTERS = ["A", "B", "C", "D"];
 const root = document.getElementById("root");
 let last = "";
@@ -17,7 +17,7 @@ function pips(total, index) {
   return `<div class="pips">${out}</div>`;
 }
 
-// Zdjecie lub film dolaczony do pytania.
+// Zdjęcie lub film dołączony do pytania.
 function mediaBlock(q) {
   const m = q.media;
   if (!m || !m.file) return "";
@@ -116,7 +116,7 @@ async function tick() {
       + (st.phase === "podium" ? JSON.stringify(st.leaderboard) : "");
     if (key !== last) { root.innerHTML = render(st); last = key; }
     else {
-      // plynna aktualizacja samego timera bez przerysowania (nie przerywa filmu)
+      // płynna aktualizacja samego timera bez przerysowania (nie przerywa filmu)
       const chip = root.querySelector(".time-chip");
       const bar = root.querySelector(".time-bar > i");
       if (chip && st.time_left != null && st.question) {
@@ -125,10 +125,10 @@ async function tick() {
         if (bar) bar.style.width = Math.max(0, 100 * st.time_left / st.question.time) + "%";
       }
     }
-  } catch (e) { /* serwer chwilowo niedostepny */ }
+  } catch (e) { /* serwer chwilowo niedostępny */ }
 }
 
-// Zmiana jezyka (ustawiona w panelu) ma odswiezyc tablice.
+// Zmiana języka (ustawiona w panelu) ma odświeżyć tablice.
 async function pollLang() {
   try {
     const s = await (await fetch("/api/settings")).json();

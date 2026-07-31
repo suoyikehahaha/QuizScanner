@@ -1,21 +1,21 @@
 """
 Skaner odpowiedzi z kamery (odpowiednik silnika Plickers).
 
-Odczytuje na zywo markery ArUco z kamery, ustala odpowiedz A/B/C/D
-kazdego ucznia (na podstawie obrotu karty) i zbiera wyniki.
+Odczytuje na zywo markery ArUco z kamery, ustala odpowiedź A/B/C/D
+każdego ucznia (na podstawie obrotu karty) i zbiera wyniki.
 
-Klasa QuizScanEngine jest niezalezna od interfejsu -- mozesz ja
-zaimportowac do swojej aplikacji z quizami i podawac klatki z dowolnego
-zrodla. Funkcja main() to gotowe demo z podgladem z kamery.
+Klasa QuizScanEngine jest niezależna od interfejsu -- możesz ja
+zaimportować do swojej aplikacji z quizami i podawać klatki z dowolnego
+źródła. Funkcja main() to gotowe demo z podglądem z kamery.
 
-Uzycie:
+Użycie:
   python scanner.py
   python scanner.py --camera 1 --names students.csv --stable 6
 
-Klawisze w oknie podgladu:
-  q  -- wyjscie
-  s  -- zapis biezacych (potwierdzonych) odpowiedzi do CSV
-  c  -- wyczysc wyniki (nowe pytanie)
+Klawisze w oknie podglądu:
+  q  -- wyjście
+  s  -- zapis bieżących (potwierdzonych) odpowiedzi do CSV
+  c  -- wyczyść wyniki (nowe pytanie)
   m  -- lustro obrazu wl/wyl
 """
 
@@ -29,13 +29,14 @@ import numpy as np
 
 from aruco_common import (make_detector, answer_from_corners,
                           marker_is_black_and_white)
+from overlay import TextBatch
 
 
-# Kolory (BGR) dla poszczegolnych odpowiedzi -- czytelny overlay.
+# Kolory (BGR) dla poszczególnych odpowiedzi -- czytelny overlay.
 ANSWER_COLORS = {
     "A": (60, 180, 75),    # zielony
     "B": (230, 160, 40),   # niebieski
-    "C": (40, 120, 240),   # pomaranczowy
+    "C": (40, 120, 240),   # pomarańczowy
     "D": (200, 70, 200),   # fioletowy
 }
 
@@ -43,7 +44,7 @@ ANSWER_COLORS = {
 class QuizScanEngine:
     """Wykrywa markery i utrzymuje POTWIERDZONE odpowiedzi.
 
-    Odpowiedz jest potwierdzana dopiero, gdy przez `stable_frames`
+    Odpowiedź jest potwierdzana dopiero, gdy przez `stable_frames`
     kolejnych klatek marker daje ten sam wynik -- eliminuje migotanie
     przy obracaniu karty.
     """
@@ -53,14 +54,14 @@ class QuizScanEngine:
         self.stable_frames = stable_frames
         self.allowed_ids = set(allowed_ids) if allowed_ids else None
         self.check_contrast = strict
-        self._history = {}   # id -> deque ostatnich odczytow
-        self.stable = {}     # id -> potwierdzona odpowiedz
+        self._history = {}   # id -> deque ostatnich odczytów
+        self.stable = {}     # id -> potwierdzona odpowiedź
 
     def process(self, frame_bgr):
-        """Przetwarza jedna klatke. Zwraca liste (id, odpowiedz, rogi).
+        """Przetwarza jedna klatkę. Zwraca listę (id, odpowiedź, rogi).
 
-        Odrzuca wykrycia, ktore nie wygladaja na wydrukowana karte:
-        spoza dozwolonej listy ID albo bez wyraznego czarno-bialego wzoru.
+        Odrzuca wykrycia, które nie wyglądają na wydrukowana kartę:
+        spoza dozwolonej listy ID albo bez wyraźnego czarno-białego wzoru.
         """
         gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = self.detector.detectMarkers(gray)
@@ -80,7 +81,7 @@ class QuizScanEngine:
     def _update(self, mid, ans):
         dq = self._history.setdefault(mid, deque(maxlen=self.stable_frames))
         dq.append(ans)
-        # Potwierdz, gdy caly bufor jest zgodny.
+        # Potwierdź, gdy cały bufor jest zgodny.
         if len(dq) == self.stable_frames and len(set(dq)) == 1:
             self.stable[mid] = ans
 
@@ -100,29 +101,39 @@ def mirror_corners(corners, width):
     return pts
 
 
-def draw_detection(frame, mid, ans, corners, name=None):
-    """Rysuje obwiednie markera, ID, odpowiedz i wskaznik krawedzi 'do gory'."""
+def draw_detection(frame, mid, ans, corners, name=None, batch=None):
+    """Rysuje obwiednię markera, ID, odpowiedź i wskaźnik krawędzi 'do góry'.
+
+    Napisy trafiają do `batch` (TextBatch), bo imiona uczniów zawierają
+    polskie znaki, których OpenCV nie potrafi narysować. Gdy batch nie jest
+    podany, napisy rysowane są od razu (wolniej, ale wygodnie w testach).
+    """
+    own_batch = batch is None
+    if own_batch:
+        batch = TextBatch()
+
     color = ANSWER_COLORS.get(ans, (0, 0, 0))
     pts = corners.astype(np.int32)
     cv2.polylines(frame, [pts], True, color, 3)
 
     cx, cy = int(corners[:, 0].mean()), int(corners[:, 1].mean())
 
-    # Duza litera odpowiedzi w srodku markera.
-    cv2.putText(frame, ans, (cx - 18, cy + 16), cv2.FONT_HERSHEY_SIMPLEX,
-                1.4, color, 4, cv2.LINE_AA)
+    # Duża litera odpowiedzi w środku markera.
+    batch.add(ans, (cx - 16, cy - 26), size=46, color=color,
+              bold=True, outline=(20, 20, 20))
 
-    # Etykieta ID / imie nad markerem.
+    # Etykieta ID / imię nad markerem.
     label = f"#{mid}" + (f" {name}" if name else "")
     top = pts[corners[:, 1].argmin()]
-    cv2.putText(frame, label, (top[0] - 10, top[1] - 12),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 3, cv2.LINE_AA)
-    cv2.putText(frame, label, (top[0] - 10, top[1] - 12),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1, cv2.LINE_AA)
+    batch.add(label, (int(top[0]) - 10, int(top[1]) - 30), size=20,
+              color=color, bold=True, outline=(255, 255, 255))
+
+    if own_batch:
+        batch.flush(frame)
 
 
 def draw_panel(frame, engine, live_answers, names):
-    """Rysuje panel wynikow: potwierdzeni uczniowie + rozklad odpowiedzi."""
+    """Rysuje panel wyników: potwierdzeni uczniowie + rozkład odpowiedzi."""
     stable = engine.snapshot()
     h, w = frame.shape[:2]
     pw = 250
@@ -131,36 +142,34 @@ def draw_panel(frame, engine, live_answers, names):
                             np.zeros_like(panel), 0.0, 40)
     frame[:, w - pw:] = panel
     x0 = w - pw + 14
+    batch = TextBatch()
 
-    cv2.putText(frame, f"Potwierdzeni: {len(stable)}", (x0, 34),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+    batch.add(f"Potwierdzeni: {len(stable)}", (x0, 18), size=22,
+              color=(255, 255, 255))
 
-    # Rozklad odpowiedzi.
+    # Rozkład odpowiedzi.
     dist = Counter(stable.values())
     bx = x0
     for lab in ("A", "B", "C", "D"):
         col = ANSWER_COLORS[lab]
-        cv2.putText(frame, f"{lab}:{dist.get(lab, 0)}", (bx, 62),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, col, 2, cv2.LINE_AA)
+        batch.add(f"{lab}:{dist.get(lab, 0)}", (bx, 48), size=19, color=col)
         bx += 62
 
-    # Lista uczniow (do wysokosci panelu).
-    y = 92
+    # Lista uczniów (do wysokości panelu).
+    y = 78
     for mid in sorted(stable):
         col = ANSWER_COLORS.get(stable[mid], (200, 200, 200))
         who = names.get(mid, f"#{mid}")
-        cv2.putText(frame, f"{who} = {stable[mid]}", (x0, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, col, 1, cv2.LINE_AA)
+        batch.add(f"{who} = {stable[mid]}", (x0, y), size=17, color=col, bold=False)
         y += 22
         if y > h - 40:
-            cv2.putText(frame, "...", (x0, y), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.55, (200, 200, 200), 1, cv2.LINE_AA)
+            batch.add("...", (x0, y), size=17, color=(200, 200, 200))
             break
 
-    # Podpowiedz klawiszy.
-    cv2.putText(frame, "s:zapis  c:reset  m:lustro  q:wyjscie",
-                (12, h - 14), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                (255, 255, 255), 1, cv2.LINE_AA)
+    # Podpowiedź klawiszy.
+    batch.add("s:zapis   c:reset   m:lustro   q:wyjście", (12, h - 26),
+              size=16, color=(255, 255, 255), bold=False)
+    batch.flush(frame)
 
 
 def load_names(path):
@@ -177,7 +186,7 @@ def save_results(engine, names):
     path = f"wyniki_{stamp}.csv"
     with open(path, "w", newline="", encoding="utf-8") as f:
         wr = csv.writer(f)
-        wr.writerow(["id", "imie", "odpowiedz"])
+        wr.writerow(["id", "imię", "odpowiedź"])
         for mid, ans in sorted(engine.snapshot().items()):
             wr.writerow([mid, names.get(mid, ""), ans])
     print(f"Zapisano wyniki: {path}  ({len(engine.snapshot())} odpowiedzi)")
@@ -187,9 +196,9 @@ def save_results(engine, names):
 def main():
     ap = argparse.ArgumentParser(description="Skaner odpowiedzi ArUco.")
     ap.add_argument("--camera", type=int, default=0, help="Indeks kamery.")
-    ap.add_argument("--names", type=str, default=None, help="CSV: id,imie.")
+    ap.add_argument("--names", type=str, default=None, help="CSV: id,imię.")
     ap.add_argument("--stable", type=int, default=6,
-                    help="Ile zgodnych klatek potwierdza odpowiedz.")
+                    help="Ile zgodnych klatek potwierdza odpowiedź.")
     ap.add_argument("--width", type=int, default=1280)
     ap.add_argument("--height", type=int, default=720)
     args = ap.parse_args()
@@ -201,11 +210,11 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, args.width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
     if not cap.isOpened():
-        print(f"Nie moge otworzyc kamery {args.camera}.")
+        print(f"Nie mogę otworzyć kamery {args.camera}.")
         return
 
     mirror = True
-    print("Skaner uruchomiony. Klawisze: s=zapis, c=reset, m=lustro, q=wyjscie.")
+    print("Skaner uruchomiony. Klawisze: s=zapis, c=reset, m=lustro, q=wyjście.")
     win = "Skaner odpowiedzi (ArUco)"
     cv2.namedWindow(win, cv2.WINDOW_NORMAL)
 
@@ -214,7 +223,7 @@ def main():
         if not ok:
             break
         # Detekcja zawsze na oryginale -- odbity marker ArUco nie pasuje do
-        # slownika i nie zostalby wykryty. Lustro dotyczy tylko podgladu.
+        # słownika i nie zostałby wykryty. Lustro dotyczy tylko podglądu.
         detections = engine.process(frame)
         live = {mid: ans for mid, ans, _ in detections}
 

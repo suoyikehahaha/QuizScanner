@@ -1,15 +1,15 @@
 """
-Stan sesji quizu i logika punktacji (niezalezne od interfejsu i kamery).
+Stan sesji quizu i logika punktacji (niezależne od interfejsu i kamery).
 
-QuizSession trzyma aktualny quiz, fazy pytania, odpowiedzi uczniow
-(dostarczane przez skaner kamery) i wyniki. Jest bezpieczny watkowo,
-bo aktualizuje go watek kamery, a odczytuje serwer HTTP.
+QuizSession trzyma aktualny quiz, fazy pytania, odpowiedzi uczniów
+(dostarczane przez skaner kamery) i wyniki. Jest bezpieczny wątkowo,
+bo aktualizuje go wątek kamery, a odczytuje serwer HTTP.
 
 Fazy:
   idle     -- pytanie pokazane, jeszcze nie zbieramy odpowiedzi
   question -- zbieramy odpowiedzi z kamery (timer leci)
-  reveal   -- pokazana poprawna odpowiedz + rozklad, punkty naliczone
-  podium   -- ranking koncowy
+  reveal   -- pokazana poprawna odpowiedź + rozkład, punkty naliczone
+  podium   -- ranking końcowy
 """
 
 import random
@@ -17,12 +17,12 @@ import threading
 import time
 
 DEFAULT_QUIZ_SETTINGS = {
-    "default_time": 20,        # domyslny czas nowego pytania (s)
-    "default_points": 1000,    # domyslne punkty nowego pytania
+    "default_time": 20,        # domyślny czas nowego pytania (s)
+    "default_points": 1000,    # domyślne punkty nowego pytania
     "shuffle_questions": False,
     "shuffle_answers": False,
-    "show_distribution": True,  # slupki rozkladu odpowiedzi przy wyniku
-    "auto_reveal_s": 6,        # tryb auto: jak dlugo pokazywac wynik
+    "show_distribution": True,  # słupki rozkładu odpowiedzi przy wyniku
+    "auto_reveal_s": 6,        # tryb auto: jak długo pokazywać wynik
     "auto_gap_s": 3,           # tryb auto: przerwa przed kolejnym pytaniem
 }
 
@@ -39,30 +39,30 @@ class QuizSession:
         self.lock = threading.RLock()
         self.quiz = {"title": "Brak wczytanego quizu", "questions": []}
         self.quiz_name = None
-        self.roster = {}          # id(int) -> imie
+        self.roster = {}          # id(int) -> imię
         self.index = 0
         self.phase = PHASE_IDLE
         self.q_start = None
         self.q_end = None
         self.answers = {}         # id -> "A".."D"
         self.answer_time = {}     # id -> czas ostatniej zmiany odpowiedzi
-        self.scores = {}          # id -> suma punktow
-        self.awarded = False      # zabezpieczenie przed podwojnym liczeniem
+        self.scores = {}          # id -> suma punktów
+        self.awarded = False      # zabezpieczenie przed podwójnym liczeniem
         self.history = []         # wyniki per pytanie (do eksportu)
-        self.speed_bonus = False  # False = punkty stale; True = szybciej wiecej
-        self.only_known = True    # ignoruj ID spoza listy uczniow
-        self.order = []           # kolejnosc pytan (moze byc losowa)
-        self.perm = [0, 1, 2, 3]  # kolejnosc odpowiedzi w biezacym pytaniu
+        self.speed_bonus = False  # False = punkty stałe; True = szybciej więcej
+        self.only_known = True    # ignoruj ID spoza listy uczniów
+        self.order = []           # kolejność pytań (może być losowa)
+        self.perm = [0, 1, 2, 3]  # kolejność odpowiedzi w bieżącym pytaniu
 
-        # Tryb automatyczny: quiz sam odslania wynik i przechodzi dalej.
+        # Tryb automatyczny: quiz sam odsłania wynik i przechodzi dalej.
         self.auto_mode = False
         self._auto_thread = None
         self._auto_stop = threading.Event()
-        self._auto_at = None      # znacznik czasu nastepnego przejscia
+        self._auto_at = None      # znacznik czasu następnego przejścia
 
     # ---------- konfiguracja ----------
     def settings(self):
-        """Ustawienia quizu z bezpiecznymi wartosciami domyslnymi."""
+        """Ustawienia quizu z bezpiecznymi wartościami domyślnymi."""
         s = dict(DEFAULT_QUIZ_SETTINGS)
         s.update(self.quiz.get("settings") or {})
         return s
@@ -79,7 +79,7 @@ class QuizSession:
             self._reset_question_state()
 
     def _build_order(self):
-        """Ustala kolejnosc pytan (opcjonalnie losowa)."""
+        """Ustala kolejność pytań (opcjonalnie losowa)."""
         n = len(self.quiz.get("questions", []))
         self.order = list(range(n))
         if self.settings().get("shuffle_questions"):
@@ -102,7 +102,7 @@ class QuizSession:
             self.auto_mode = bool(value)
             self._auto_at = None
 
-    # ---------- przeplyw pytania ----------
+    # ---------- przepływ pytania ----------
     def _reset_question_state(self):
         self.answers = {}
         self.answer_time = {}
@@ -112,17 +112,17 @@ class QuizSession:
         self._set_answer_perm()
 
     def _set_answer_perm(self):
-        """Ustala kolejnosc wyswietlania odpowiedzi (opcjonalnie losowa).
+        """Ustala kolejność wyświetlania odpowiedzi (opcjonalnie losowa).
 
-        perm[i] = ktora oryginalna odpowiedz pokazujemy na pozycji i.
-        Losowanie jest ustalane raz na pytanie, zeby tablica nie migotala.
+        perm[i] = która oryginalna odpowiedź pokazujemy na pozycji i.
+        Losowanie jest ustalane raz na pytanie, żeby tablica nie migotała.
         """
         self.perm = [0, 1, 2, 3]
         if self.settings().get("shuffle_answers"):
             random.shuffle(self.perm)
 
     def displayed_answers(self, q):
-        """Odpowiedzi w kolejnosci pokazywanej uczniom."""
+        """Odpowiedzi w kolejności pokazywanej uczniom."""
         src = list(q.get("answers", ["", "", "", ""]))
         src += [""] * (4 - len(src))
         return [src[i] for i in self.perm]
@@ -160,16 +160,16 @@ class QuizSession:
 
     def record_answers(self, confirmed):
         """confirmed: dict {id: 'A'/'B'/'C'/'D'} z potwierdzonymi odczytami.
-        Wywolywane przez watek kamery. Zapisuje odpowiedzi i czas zmiany."""
+        Wywoływane przez wątek kamery. Zapisuje odpowiedzi i czas zmiany."""
         with self.lock:
             if self.phase != PHASE_QUESTION:
                 return
             if self.q_end and time.time() > self.q_end:
-                return  # czas minal -> zamrazamy odpowiedzi
+                return  # czas minął -> zamrażamy odpowiedzi
             now = time.time()
             for mid, ans in confirmed.items():
                 # Ochrona przed przypadkowymi wykryciami: przyjmuj tylko ID,
-                # ktore faktycznie sa na liscie uczniow.
+                # które faktycznie są na liście uczniów.
                 if self.only_known and self.roster and mid not in self.roster:
                     continue
                 if self.answers.get(mid) != ans:
@@ -192,7 +192,7 @@ class QuizSession:
             self.phase = PHASE_REVEAL
 
     def _award(self, q):
-        # Uczniowie odpowiadaja litera z TABLICY, wiec liczy sie pozycja
+        # Uczniowie odpowiadają litera z TABLICY, więc liczy się pozycja
         # po ewentualnym przetasowaniu odpowiedzi.
         correct = self.displayed_correct(q)
         base = int(q.get("points", 1000) or 0)
@@ -204,12 +204,12 @@ class QuizSession:
             pts = 0
             if is_correct and base > 0:
                 if self.speed_bonus:
-                    # Styl Kahoot: kto szybciej ustalil odpowiedz, dostaje wiecej.
+                    # Styl Kahoot: kto szybciej ustalił odpowiedź, dostaje więcej.
                     elapsed = self.answer_time.get(mid, self.q_start) - self.q_start
                     frac = 1.0 - min(max(elapsed / t, 0.0), 1.0)
                     pts = int(round(base * (0.5 + 0.5 * frac)))
                 else:
-                    # Punkty stale: kazda poprawna odpowiedz warta tyle samo.
+                    # Punkty stałe: każda poprawna odpowiedź warta tyle samo.
                     pts = base
             self.scores[mid] = self.scores.get(mid, 0) + pts
             result["answers"][mid] = {"answer": ans, "correct": is_correct, "points": pts}
@@ -246,7 +246,7 @@ class QuizSession:
             self.phase = PHASE_IDLE
             self._reset_question_state()
 
-    # Skroty uzywane przez petle automatyczna (lock jest reentrantny).
+    # Skróty używane przez pętlę automatyczna (lock jest reentrantny).
     def _do_reveal(self):
         self.reveal()
 
@@ -258,7 +258,7 @@ class QuizSession:
 
     # ---------- tryb automatyczny ----------
     def start_auto_engine(self):
-        """Uruchamia watek prowadzacy quiz samodzielnie (gdy auto_mode=True)."""
+        """Uruchamia wątek prowadzący quiz samodzielnie (gdy auto_mode=True)."""
         if self._auto_thread and self._auto_thread.is_alive():
             return
         self._auto_stop.clear()
@@ -273,7 +273,7 @@ class QuizSession:
             try:
                 self._auto_tick()
             except Exception:
-                pass  # tryb auto nigdy nie moze wywrocic aplikacji
+                pass  # tryb auto nigdy nie może wywrócić aplikacji
 
     def _auto_tick(self):
         with self.lock:
@@ -284,14 +284,14 @@ class QuizSession:
             now = time.time()
 
             if self.phase == PHASE_QUESTION:
-                # Czas pytania minal -> pokaz wynik.
+                # Czas pytania minął -> pokaż wynik.
                 if self.q_end and now >= self.q_end:
                     self._do_reveal()
                     self._auto_at = now + float(st.get("auto_reveal_s", 6) or 0)
                 return
 
             if self.phase == PHASE_REVEAL:
-                # Po pokazaniu wyniku -> nastepne pytanie (lub podium).
+                # Po pokazaniu wyniku -> następne pytanie (lub podium).
                 if self._auto_at and now >= self._auto_at:
                     self._do_next()
                     self._auto_at = (now + float(st.get("auto_gap_s", 3) or 0)
@@ -299,7 +299,7 @@ class QuizSession:
                 return
 
             if self.phase == PHASE_IDLE:
-                # Krotka przerwa miedzy pytaniami, potem start kolejnego.
+                # Krótka przerwa między pytaniami, potem start kolejnego.
                 if self._auto_at is None:
                     self._auto_at = now + float(st.get("auto_gap_s", 3) or 0)
                 elif now >= self._auto_at:
@@ -307,7 +307,7 @@ class QuizSession:
                     self._auto_at = None
 
     def auto_next_in(self):
-        """Ile sekund do automatycznego przejscia (None, gdy nie dotyczy)."""
+        """Ile sekund do automatycznego przejścia (None, gdy nie dotyczy)."""
         if self.auto_mode and self._auto_at:
             return max(0.0, self._auto_at - time.time())
         return None
@@ -320,8 +320,8 @@ class QuizSession:
 
     # ---------- widok stanu ----------
     def state(self, full=False):
-        """Slownik stanu do JSON. full=True (nauczyciel) dolacza poprawna
-        odpowiedz zawsze; dla tablicy tylko w fazie reveal."""
+        """Słownik stanu do JSON. full=True (nauczyciel) dołącza poprawna
+        odpowiedź zawsze; dla tablicy tylko w fazie reveal."""
         with self.lock:
             q = self.current_question()
             tl = self.time_left()

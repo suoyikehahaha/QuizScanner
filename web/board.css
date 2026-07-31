@@ -7,7 +7,7 @@ body.board {
   height: 100vh;
   overflow: hidden;
 }
-/* Subtelna siatka punktow - nawiazanie do rastra znacznika ArUco */
+/* Subtelna siatka punktów - nawiązanie do rastra znacznika ArUco */
 body.board::before {
   content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background-image: radial-gradient(rgba(255,255,255,.05) 1.4px, transparent 1.4px);
@@ -20,7 +20,7 @@ body.board::before {
   padding: 3vh 4vw 2.4vh;
 }
 
-/* ---- naglowek ---- */
+/* ---- nagłówek ---- */
 .board-top { display: flex; align-items: center; gap: 20px; }
 .board-title {
   font-size: 2.1vh; font-weight: 700; letter-spacing: .16em;
@@ -55,7 +55,7 @@ body.board::before {
   padding: 1vh 3vw 0; margin: .6vh 0 0;
 }
 
-/* ---- zdjecie / film w pytaniu ---- */
+/* ---- zdjęcie / film w pytaniu ---- */
 .qtext.with-media { font-size: 3.4vh; padding-top: .4vh; margin-bottom: .6vh; }
 .qmedia {
   flex: 0 1 auto; display: flex; justify-content: center; align-items: center;
@@ -124,7 +124,7 @@ body.board::before {
 }
 .chip .badge { width: 1.5em; height: 1.5em; font-size: .9em; }
 
-/* ---- ekrany posrednie ---- */
+/* ---- ekrany pośrednie ---- */
 .center-screen {
   position: relative; z-index: 2;
   height: 100vh; display: flex; flex-direction: column;

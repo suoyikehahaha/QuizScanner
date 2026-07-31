@@ -41,7 +41,7 @@ body.teacher { background: var(--paper); }
 
 .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 
-/* przelacznik punktow za czas */
+/* przełącznik punktów za czas */
 .switch-row { display: flex; align-items: center; gap: 12px; margin-top: 14px;
   padding-top: 14px; border-top: 1px dashed var(--line); }
 .switch-row .lbl { font-weight: 700; font-size: 14px; }
@@ -57,7 +57,7 @@ body.teacher { background: var(--paper); }
 
 .lang-sel { padding: 7px 8px; }
 
-/* zrodlo obrazu (kamera / telefon) */
+/* źródło obrazu (kamera / telefon) */
 .src-row { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .src-row .field { font-size: 12px; font-weight: 800; color: var(--muted);
   text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; display: block; }

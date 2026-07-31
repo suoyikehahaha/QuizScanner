@@ -43,7 +43,7 @@ $("onlyKnownToggle").onchange = () =>
   api("/api/settings", { only_known: $("onlyKnownToggle").checked });
 $("camApply").onclick = async () => {
   await api("/api/settings", { camera: $("camSrc").value.trim() || "0" });
-  // odswiez strumien podgladu (kamera startuje na nowo)
+  // odśwież strumień podglądu (kamera startuje na nowo)
   setTimeout(() => { $("cam").src = "/video_feed?" + Date.now(); }, 800);
 };
 
@@ -200,7 +200,7 @@ async function refreshState() {
   if (document.activeElement !== $("onlyKnownToggle") && st.only_known != null)
     $("onlyKnownToggle").checked = !!st.only_known;
 
-  // Pasek trybu automatycznego + blokada przyciskow recznych.
+  // Pasek trybu automatycznego + blokada przycisków ręcznych.
   const bar = $("autoBar");
   if (st.auto_mode) {
     bar.classList.remove("hidden");
@@ -218,7 +218,7 @@ async function refreshState() {
   updateCamNote(st.camera_ok);
 }
 
-// Po zmianie jezyka odswiez teksty zalezne od danych.
+// Po zmianie języka odśwież teksty zależne od danych.
 document.addEventListener("i18n:changed", () => { loadQuizList(); loadMeta(); });
 
 (async function init() {

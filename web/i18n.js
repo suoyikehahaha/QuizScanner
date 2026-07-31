@@ -1,10 +1,10 @@
-// Tlumaczenia interfejsu. Domyslny jezyk: polski.
-// Uzycie w HTML:  <span data-i18n="klucz"></span>  (albo data-i18n-ph dla placeholder)
-// Uzycie w JS:    t("klucz")  /  t("klucz", {n: 1, total: 4})
+// Tłumaczenia interfejsu. Domyślny język: polski.
+// Użycie w HTML:  <span data-i18n="klucz"></span>  (albo data-i18n-ph dla placeholder)
+// Użycie w JS:    t("klucz")  /  t("klucz", {n: 1, total: 4})
 
 const I18N = {
   pl: {
-    // --- wspolne ---
+    // --- wspólne ---
     app_name: "QuizScanner",
     lang_label: "Język",
     yes: "Tak", no: "Nie",
@@ -267,7 +267,7 @@ function applyI18n(root) {
   document.dispatchEvent(new CustomEvent("i18n:changed"));
 }
 
-// Pobiera jezyk z serwera (wspolny dla panelu i tablicy) i stosuje go.
+// Pobiera język z serwera (wspólny dla panelu i tablicy) i stosuje go.
 async function initLang() {
   try {
     const s = await (await fetch("/api/settings")).json();

@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  <img alt="wersja" src="https://img.shields.io/badge/wersja-2.0.0-e2603f">
-  <img alt="jezyki" src="https://img.shields.io/badge/j%C4%99zyk-PL%20%7C%20EN-2f9fb3">
+  <img alt="wersja" src="https://img.shields.io/badge/wersja-2.0.1-e2603f">
+  <img alt="języki" src="https://img.shields.io/badge/j%C4%99zyk-PL%20%7C%20EN-2f9fb3">
   <img alt="platforma" src="https://img.shields.io/badge/platforma-Windows%20%7C%20Linux%20%7C%20macOS-2f9fb3">
   <img alt="python" src="https://img.shields.io/badge/Python-3.10%2B-4faa6a">
   <img alt="licencja" src="https://img.shields.io/badge/licencja-MIT-8a7bef">
@@ -84,7 +84,7 @@ pip install -r requirements.txt      # tylko jeśli czegoś brakuje
    ```
 
 2. **Przygotuj pytania** — otwórz **Edytor** i utwórz quiz (albo użyj
-   gotowego `Przykladowy quiz`). W zakładce **Uczniowie** wpisz listę klasy
+   gotowego `Przykładowy quiz`). W zakładce **Uczniowie** wpisz listę klasy
    (ID = numer na karcie).
 
 3. **Pobierz i wydrukuj karty** — w edytorze (zakładka Uczniowie) kliknij
@@ -158,7 +158,7 @@ Poprawna odpowiedź jest **ukryta na tablicy** do momentu „Pokaż wynik".
 | `generate_cards.py` | generator kart PNG/PDF do druku |
 | `web/` | strony i style (board / teacher / editor) |
 | `quizzes/` | zapisane quizy (JSON) |
-| `students.csv` | lista uczniów (id,imie) do druku kart |
+| `students.csv` | lista uczniów (id,imię) do druku kart |
 
 ## Konfiguracja i wskazówki
 
@@ -215,3 +215,4 @@ Kody QR są większe i gorzej czytają się z daleka oraz pod kątem, a jeden ka
 z wieloma kodami bywa zawodny. Markery ArUco/AprilTag zaprojektowano właśnie
 do wykrywania **wielu znaczników jednocześnie** z pomiarem obrotu — to
 dokładnie mechanizm, na którym opiera się Plickers.
+

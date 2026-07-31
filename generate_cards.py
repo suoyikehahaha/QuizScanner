@@ -1,20 +1,20 @@
 """
 Generator kart do druku (odpowiednik kart Plickers).
 
-Kazda karta zawiera:
-  - jeden marker ArUco o unikalnym ID (= uczen),
-  - litery A / B / C / D przy czterech krawedziach, obrocone tak, aby
-    kazda byla czytelna, gdy jej krawedz jest u gory,
-  - naglowek z numerem ID i (opcjonalnie) imieniem ucznia.
+Każda karta zawiera:
+  - jeden marker ArUco o unikalnym ID (= uczeń),
+  - litery A / B / C / D przy czterech krawędziach, obrócone tak, aby
+    każda była czytelna, gdy jej krawędź jest u góry,
+  - nagłówek z numerem ID i (opcjonalnie) imieniem ucznia.
 
-Uzycie:
+Użycie:
   python generate_cards.py --count 30
   python generate_cards.py --names students.csv
   python generate_cards.py --count 30 --out karty --card-mm 148 210
 
 Wynik:
-  - PNG kazdej karty w folderze wyjsciowym (do druku 1 na strone),
-  - zbiorczy plik karty.pdf (jedna karta na strone A4) jesli jest Pillow.
+  - PNG każdej karty w folderze wyjściowym (do druku 1 na stronę),
+  - zbiorczy plik karty.pdf (jedna karta na stronę A4) jeśli jest Pillow.
 """
 
 import argparse
@@ -29,11 +29,11 @@ from aruco_common import get_dictionary, ANSWER_LABELS
 from i18n import t
 
 
-# Czcionki TrueType -- potrzebne, bo cv2.putText nie potrafi narysowac
-# polskich znakow (obsluguje tylko ASCII). Szukamy typowych czcionek
-# systemowych; kolejnosc: Windows, Linux, macOS.
+# Czcionki TrueType -- potrzebne, bo cv2.putText nie potrafi narysować
+# polskich znaków (obsługuje tylko ASCII). Szukamy typowych czcionek
+# systemowych; kolejność: Windows, Linux, macOS.
 _FONT_CANDIDATES = {
-    False: [  # zwykla
+    False: [  # zwykła
         r"C:\Windows\Fonts\segoeui.ttf", r"C:\Windows\Fonts\arial.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/dejavu/DejaVuSans.ttf",
@@ -52,7 +52,7 @@ _font_cache = {}
 
 
 def get_font(size, bold=False):
-    """Zwraca czcionke TrueType o zadanym rozmiarze (z pamiecia podreczna)."""
+    """Zwraca czcionkę TrueType o zadanym rozmiarze (z pamięcią podręczną)."""
     key = (int(size), bool(bold))
     if key in _font_cache:
         return _font_cache[key]
@@ -64,14 +64,14 @@ def get_font(size, bold=False):
                 break
             except Exception:
                 continue
-    if font is None:                      # ostatecznosc: wbudowana bitmapowa
+    if font is None:                      # ostateczność: wbudowana bitmapowa
         font = ImageFont.load_default()
     _font_cache[key] = font
     return font
 
 
 def render_text(text, size, bold=True, color=(0, 0, 0)):
-    """Rysuje tekst na wlasnym bialym kafelku (BGR) -- z polskimi znakami."""
+    """Rysuje tekst na własnym białym kafelku (BGR) -- z polskimi znakami."""
     font = get_font(size, bold)
     dummy = Image.new("RGB", (1, 1), "white")
     box = ImageDraw.Draw(dummy).textbbox((0, 0), text, font=font)
@@ -85,14 +85,14 @@ def render_text(text, size, bold=True, color=(0, 0, 0)):
 
 
 def draw_text(card_bgr, text, xy, size, bold=False, color=(0, 0, 0)):
-    """Rysuje tekst bezposrednio na obrazie BGR (obsluguje UTF-8)."""
+    """Rysuje tekst bezpośrednio na obrazie BGR (obsługuje UTF-8)."""
     img = Image.fromarray(cv2.cvtColor(card_bgr, cv2.COLOR_BGR2RGB))
     ImageDraw.Draw(img).text(xy, text, font=get_font(size, bold), fill=color)
     return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
 
 def rotate90(img, angle):
-    """Obrot o wielokrotnosc 90 stopni. Dodatni = przeciwnie do zegara."""
+    """Obrót o wielokrotność 90 stopni. Dodatni = przeciwnie do zegara."""
     angle %= 360
     if angle == 0:
         return img
@@ -102,16 +102,16 @@ def rotate90(img, angle):
         return cv2.rotate(img, cv2.ROTATE_180)
     if angle == 270:
         return cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-    raise ValueError("Obslugiwane sa tylko katy 0/90/180/270.")
+    raise ValueError("Obsługiwane są tylko kąty 0/90/180/270.")
 
 
 def paste_center(dst, patch, cx, cy):
-    """Wkleja kafelek 'patch' na 'dst' tak, aby jego srodek byl w (cx, cy)."""
+    """Wkleja kafelek 'patch' na 'dst' tak, aby jego środek był w (cx, cy)."""
     ph, pw = patch.shape[:2]
     x0 = int(round(cx - pw / 2))
     y0 = int(round(cy - ph / 2))
     x1, y1 = x0 + pw, y0 + ph
-    # Przyciecie do granic plotna (bezpiecznik).
+    # Przycięcie do granic płótna (bezpiecznik).
     x0c, y0c = max(0, x0), max(0, y0)
     x1c, y1c = min(dst.shape[1], x1), min(dst.shape[0], y1)
     if x1c <= x0c or y1c <= y0c:
@@ -120,20 +120,20 @@ def paste_center(dst, patch, cx, cy):
 
 
 def make_card(marker_id, name, dictionary, size_px, marker_px, lang="pl"):
-    """Buduje pojedyncza karte (obraz BGR)."""
+    """Buduje pojedynczą kartę (obraz BGR)."""
     W, H = size_px
     card = np.full((H, W, 3), 255, np.uint8)
     cv2.rectangle(card, (10, 10), (W - 10, H - 10), (0, 0, 0), 3)
 
     cx, cy = W // 2, H // 2
 
-    # Marker w srodku.
+    # Marker w środku.
     marker = cv2.aruco.generateImageMarker(dictionary, marker_id, marker_px)
     marker = cv2.cvtColor(marker, cv2.COLOR_GRAY2BGR)
     paste_center(card, marker, cx, cy)
 
-    # Litery przy krawedziach. Kazda obrocona tak, by byla czytelna,
-    # gdy jej krawedz jest u gory (A gora, B prawo, C dol, D lewo).
+    # Litery przy krawędziach. Każda obrócona tak, by była czytelna,
+    # gdy jej krawędź jest u góry (A góra, B prawo, C dół, D lewo).
     offset = marker_px // 2 + int(marker_px * 0.17)
     placements = {
         "A": (cx, cy - offset, 0),
@@ -146,13 +146,13 @@ def make_card(marker_id, name, dictionary, size_px, marker_px, lang="pl"):
         tile = rotate90(tile, ang)
         paste_center(card, tile, px, py)
 
-    # Naglowek: ID + imie ucznia.
+    # Nagłówek: ID + imię ucznia.
     header = f"#{marker_id}"
     if name:
         header += f"   {name}"
     card = draw_text(card, header, (30, 26), int(W * 0.048), bold=True)
 
-    # Stopka z instrukcja (w wybranym jezyku, z polskimi znakami).
+    # Stopka z instrukcja (w wybranym języku, z polskimi znakami).
     hint = t("card_hint", lang)
     card = draw_text(card, hint, (30, H - int(W * 0.052)),
                      int(W * 0.030), bold=False, color=(105, 105, 105))
@@ -160,11 +160,11 @@ def make_card(marker_id, name, dictionary, size_px, marker_px, lang="pl"):
 
 
 def load_names(path):
-    """Wczytuje pary (id, imie) z pliku CSV. Naglowek opcjonalny.
+    """Wczytuje pary (id, imię) z pliku CSV. Nagłówek opcjonalny.
 
     Akceptowane formaty wiersza:
-      id,imie
-      imie              (ID nadawane kolejno od 0)
+      id,imię
+      imię              (ID nadawane kolejno od 0)
     """
     names = {}
     order = []
@@ -174,7 +174,7 @@ def load_names(path):
                 continue
             first = row[0].strip()
             if first.lower() in ("id", "#", "numer"):
-                continue  # naglowek
+                continue  # nagłówek
             if len(row) >= 2 and first.isdigit():
                 mid = int(first)
                 names[mid] = row[1].strip()
@@ -189,15 +189,15 @@ def load_names(path):
 def main():
     ap = argparse.ArgumentParser(description="Generator kart ArUco (styl Plickers).")
     ap.add_argument("--count", type=int, default=None,
-                    help="Liczba kart o ID 0..count-1 (jesli nie podano --names).")
+                    help="Liczba kart o ID 0..count-1 (jeśli nie podano --names).")
     ap.add_argument("--names", type=str, default=None,
-                    help="Plik CSV z imionami (id,imie lub samo imie).")
+                    help="Plik CSV z imionami (id,imię lub samo imię).")
     ap.add_argument("--out", type=str, default="karty",
-                    help="Folder wyjsciowy (domyslnie: karty).")
+                    help="Folder wyjściowy (domyślnie: karty).")
     ap.add_argument("--card-mm", type=float, nargs=2, default=[148.0, 210.0],
-                    metavar=("SZER", "WYS"), help="Rozmiar karty w mm (domyslnie A5).")
-    ap.add_argument("--dpi", type=int, default=200, help="Rozdzielczosc druku (DPI).")
-    ap.add_argument("--no-pdf", action="store_true", help="Nie skladaj zbiorczego PDF.")
+                    metavar=("SZER", "WYS"), help="Rozmiar karty w mm (domyślnie A5).")
+    ap.add_argument("--dpi", type=int, default=200, help="Rozdzielczość druku (DPI).")
+    ap.add_argument("--no-pdf", action="store_true", help="Nie składaj zbiorczego PDF.")
     args = ap.parse_args()
 
     if args.names:
@@ -224,7 +224,7 @@ def main():
         cv2.imwrite(path, card)
         card_paths.append(path)
 
-    print(f"Zapisano {len(card_paths)} plikow PNG w: {args.out}")
+    print(f"Zapisano {len(card_paths)} plików PNG w: {args.out}")
 
     if not args.no_pdf:
         try:
@@ -235,7 +235,7 @@ def main():
                           resolution=float(args.dpi))
             print(f"Zapisano zbiorczy PDF: {pdf_path}")
         except ImportError:
-            print("Pillow niedostepny -- pomijam PDF (PNG-i sa gotowe do druku).")
+            print("Pillow niedostępny -- pomijam PDF (PNG-i są gotowe do druku).")
 
 
 if __name__ == "__main__":

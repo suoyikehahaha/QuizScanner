@@ -1,8 +1,8 @@
 """
-Teksty aplikacji po stronie Pythona (karty do druku, eksport wynikow).
+Teksty aplikacji po stronie Pythona (karty do druku, eksport wyników).
 
-Interfejs webowy ma wlasny slownik w web/i18n.js -- tutaj sa tylko napisy,
-ktore powstaja w Pythonie. Domyslny jezyk: polski.
+Interfejs webowy ma własny słownik w web/i18n.js -- tutaj są tylko napisy,
+które powstają w Pythonie. Domyślny język: polski.
 """
 
 DEFAULT_LANG = "pl"
@@ -34,6 +34,6 @@ STRINGS = {
 
 
 def t(key, lang=DEFAULT_LANG):
-    """Zwraca napis w wybranym jezyku (z awaryjnym powrotem do polskiego)."""
+    """Zwraca napis w wybranym języku (z awaryjnym powrotem do polskiego)."""
     table = STRINGS.get(lang) or STRINGS[DEFAULT_LANG]
     return table.get(key) or STRINGS[DEFAULT_LANG].get(key, key)

@@ -1,4 +1,4 @@
-// Edytor quizow, ustawien i listy uczniow.
+// Edytor quizów, ustawień i listy uczniów.
 const LETTERS = ["A", "B", "C", "D"];
 const $ = id => document.getElementById(id);
 const MEDIA_MAX_MB = 40;
@@ -11,7 +11,7 @@ const DEFAULT_SETTINGS = {
 
 let quiz = { title: "", settings: Object.assign({}, DEFAULT_SETTINGS), questions: [] };
 let currentName = null;
-let mediaTargetIndex = null;   // do ktorego pytania wgrywamy plik
+let mediaTargetIndex = null;   // do którego pytania wgrywamy plik
 
 function esc(s) {
   return (s || "").replace(/[&<>"]/g, c => (
@@ -44,7 +44,7 @@ function normalize(q) {
   };
 }
 
-// ---------- lista quizow ----------
+// ---------- lista quizów ----------
 async function loadQuizList() {
   const r = await api("/api/quizzes");
   const ul = $("quizList"); ul.innerHTML = "";
@@ -228,11 +228,11 @@ $("delQuiz").onclick = async () => {
   currentName = null; $("newQuiz").onclick(); toast(t("e_deleted"));
 };
 
-// zapis do pliku / wczytanie z pliku (dzielenie sie quizem)
+// zapis do pliku / wczytanie z pliku (dzielenie się quizem)
 $("exportQuiz").onclick = async () => {
   syncFromDom();
   const name = currentName || (quiz.title || "quiz");
-  await api("/api/quiz", { name, quiz });     // najpierw zapisz biezacy stan
+  await api("/api/quiz", { name, quiz });     // najpierw zapisz bieżący stan
   currentName = name; renderAll();
   window.open("/api/quiz/export?name=" + encodeURIComponent(name), "_blank");
 };
@@ -254,7 +254,7 @@ $("importFile").onchange = async () => {
 
 $("toTeacher").onclick = () => location.href = "/teacher";
 
-// ---------- zakladki ----------
+// ---------- zakładki ----------
 $("tabQuiz").onclick = () => switchTab("quiz");
 $("tabRoster").onclick = () => switchTab("roster");
 function switchTab(tab) {
@@ -304,7 +304,7 @@ $("cardsBtn").onclick = async () => {
   window.open("/api/cards.pdf", "_blank");
 };
 
-// ---------- jezyk ----------
+// ---------- język ----------
 $("langSel").onchange = async () => {
   await api("/api/settings", { lang: $("langSel").value });
   setLang($("langSel").value);
