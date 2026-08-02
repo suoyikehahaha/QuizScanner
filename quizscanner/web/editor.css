@@ -13,7 +13,7 @@ body.editor { background: var(--paper); }
 .tabs { display: flex; gap: 6px; }
 .tab { background: var(--ink-2); color: var(--ink-muted); border: 1px solid var(--ink-line);
   border-radius: 8px; padding: 8px 16px; }
-.tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tab.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 
 .ed-body { display: grid; grid-template-columns: 260px 1fr; gap: 16px; padding: 18px; align-items: start; }
 @media (max-width: 820px){ .ed-body { grid-template-columns: 1fr; } }
@@ -34,7 +34,7 @@ label.field { display: block; font-size: 12px; font-weight: 800; color: var(--mu
   margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
 input.text, textarea.text {
   width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line);
-  border-radius: 9px; background: #fff; color: var(--text); }
+  border-radius: 9px; background: var(--field); color: var(--text); }
 input.text:focus, textarea.text:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
 textarea.text { min-height: 56px; resize: vertical; }
 
@@ -47,7 +47,7 @@ textarea.text { min-height: 56px; resize: vertical; }
 
 .opts-ed { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
 .opt-ed { display: flex; align-items: center; gap: 10px; padding: 10px;
-  border: 1px solid var(--line); border-left: 6px solid var(--spine); border-radius: 10px; background: #fff; }
+  border: 1px solid var(--line); border-left: 6px solid var(--spine); border-radius: 10px; background: var(--field); }
 .opt-ed .badge { width: 30px; height: 30px; font-size: 15px; background: var(--spine); }
 .opt-ed input.text { flex: 1; }
 .opt-ed .pick { display: flex; align-items: center; gap: 6px; font-size: 12px;
@@ -75,6 +75,27 @@ textarea.text { min-height: 56px; resize: vertical; }
 .chk { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
 .chk input { width: 17px; height: 17px; accent-color: var(--accent); }
 
+/* przybornik matematyczny */
+.mathbar { position: sticky; top: 66px; z-index: 4; }
+.panel-head { display: flex; align-items: center; gap: 10px; }
+.panel-head .panel-h { flex: 1; margin-bottom: 0; }
+.mb-toggle { padding: 5px 10px; font-size: 12px; }
+.mathbar.collapsed #mathBox { display: none; }
+.mb-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 10px; }
+.mb-tab { background: transparent; border: 1px solid var(--line); color: var(--muted);
+  padding: 5px 11px; font-size: 12px; font-weight: 700; border-radius: 999px; }
+.mb-tab.active { background: var(--accent); border-color: var(--accent);
+  color: var(--on-accent); }
+.mb-keys { display: flex; flex-wrap: wrap; gap: 5px; }
+.mb-key { background: var(--field); border: 1px solid var(--line); color: var(--text);
+  min-width: 38px; padding: 7px 9px; font-size: 16px; font-weight: 600;
+  border-radius: 8px; line-height: 1.1; }
+.mb-key:hover { border-color: var(--accent); color: var(--accent); }
+.mb-tools { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;
+  padding-top: 10px; border-top: 1px dashed var(--line); }
+.mb-tools .mb-key { font-size: 13px; font-weight: 700; padding: 7px 12px; }
+.mb-hint { display: block; margin-top: 10px; font-size: 12px; color: var(--muted); }
+
 /* media w pytaniu */
 .media-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .mprev { height: 74px; border-radius: 8px; border: 1px solid var(--line);
@@ -89,6 +110,6 @@ code { background: var(--paper); padding: 2px 6px; border-radius: 5px; border: 1
 .hidden { display: none; }
 
 .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
-  background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 10px;
+  background: var(--ink-3); color: var(--ink-text); border: 1px solid var(--ink-line); padding: 11px 20px; border-radius: 10px;
   font-weight: 700; opacity: 0; transition: opacity .25s; pointer-events: none; }
 .toast.show { opacity: .96; }

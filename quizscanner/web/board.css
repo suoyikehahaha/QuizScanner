@@ -1,7 +1,7 @@
 html, body { height: 100%; }
 body.board {
   background:
-    radial-gradient(1400px 800px at 50% -20%, #20263a 0%, var(--ink) 60%),
+    radial-gradient(1400px 800px at 50% -20%, var(--board-glow) 0%, var(--ink) 60%),
     var(--ink);
   color: var(--ink-text);
   height: 100vh;
@@ -13,6 +13,14 @@ body.board::before {
   background-image: radial-gradient(rgba(255,255,255,.05) 1.4px, transparent 1.4px);
   background-size: 26px 26px;
 }
+
+/* Podpowiedź o zablokowanym dźwięku (polityka autoodtwarzania przeglądarek) */
+.sound-gate {
+  position: fixed; z-index: 9; top: 18px; left: 50%; transform: translateX(-50%);
+  background: var(--ink-2); border: 1px solid var(--ink-line); color: var(--ink-muted);
+  padding: 8px 18px; border-radius: 999px; font-size: 1.9vh; font-weight: 700;
+}
+.sound-gate.hidden { display: none; }
 
 .board-wrap {
   position: relative; z-index: 2;
@@ -39,7 +47,7 @@ body.board::before {
   background: var(--ink-2); border: 1px solid var(--ink-line);
   padding: 6px 16px; border-radius: 10px; min-width: 3.4em; text-align: center;
 }
-.time-chip.low { color: #fff; background: var(--accent); border-color: var(--accent); }
+.time-chip.low { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
 
 /* liniowy pasek czasu */
 .time-bar { height: 6px; border-radius: 4px; background: var(--ink-2);
@@ -158,6 +166,6 @@ body.board::before {
 .rank-row .who { flex: 1; text-align: left; }
 .rank-row .pts { font-variant-numeric: tabular-nums; color: var(--accent); }
 .rank-row.top1 { border-color: var(--accent); }
-.rank-row.top1 .pos { background: var(--accent); color: #fff; }
-.rank-row.top2 .pos { background: #9aa0b2; color: #14161f; }
-.rank-row.top3 .pos { background: #b9835a; color: #14161f; }
+.rank-row.top1 .pos { background: var(--accent); color: var(--on-accent); }
+.rank-row.top2 .pos { background: #9aa0b2; color: var(--ink); }
+.rank-row.top3 .pos { background: #b9835a; color: var(--ink); }

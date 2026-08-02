@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QuizScanner</title>
   <link rel="icon" href="/static/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/themes.css">
   <link rel="stylesheet" href="/static/common.css">
   <link rel="stylesheet" href="/static/teacher.css">
 </head>
@@ -16,12 +17,21 @@
     <button class="btn-ghost" id="editorBtn" data-i18n="t_editor"></button>
     <button class="btn-ghost" id="boardBtn" data-i18n="t_board"></button>
     <div class="spacer"></div>
+    <select id="themeSel" class="lang-sel" data-i18n-title="theme_label"></select>
     <select id="langSel" class="lang-sel" data-i18n-title="lang_label">
       <option value="pl">🇵🇱 Polski</option>
       <option value="en">🇬🇧 English</option>
     </select>
     <span class="lan-url" id="lanUrl">—</span>
-    <button class="btn-ghost" id="exportBtn" data-i18n="t_export"></button>
+    <button class="btn-primary" id="reportBtn" data-i18n="t_report"></button>
+  </div>
+
+  <!-- Pasek informujący o nowej wersji (pokazuje się tylko, gdy jest) -->
+  <div class="update-bar hidden" id="updateBar">
+    <span id="updateText"></span>
+    <button class="btn-primary" id="updateBtn" data-i18n="u_update_now"></button>
+    <button class="btn-ghost" id="updatePage" data-i18n="u_open_page"></button>
+    <button class="btn-ghost" id="updateClose" data-i18n="close"></button>
   </div>
 
   <div class="layout">
@@ -49,6 +59,46 @@
           <div>
             <div class="lbl" data-i18n="t_only_known"></div>
             <div class="sub" data-i18n="t_only_known_sub"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ustawienia aplikacji: dźwięk, raporty, aktualizacje -->
+      <div class="card">
+        <h3 data-i18n="s_app_settings"></h3>
+
+        <div class="switch-row first">
+          <label class="switch">
+            <input type="checkbox" id="soundToggle"><span class="slider"></span>
+          </label>
+          <div>
+            <div class="lbl" data-i18n="t_sound_label"></div>
+            <div class="sub" data-i18n="t_sound_sub"></div>
+          </div>
+        </div>
+        <div class="vol-row">
+          <span class="sub" data-i18n="t_volume"></span>
+          <input type="range" id="volume" min="0" max="100" step="5">
+          <span class="sub" id="volVal">60%</span>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input type="checkbox" id="autoReportToggle"><span class="slider"></span>
+          </label>
+          <div>
+            <div class="lbl" data-i18n="t_auto_report_label"></div>
+            <div class="sub" data-i18n="t_auto_report_sub"></div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input type="checkbox" id="updateToggle"><span class="slider"></span>
+          </label>
+          <div>
+            <div class="lbl" data-i18n="u_check_label"></div>
+            <div class="sub" id="updateState"></div>
           </div>
         </div>
       </div>
@@ -124,6 +174,23 @@
       <h2 id="phTitle"></h2>
       <div id="phBody"></div>
       <button class="btn-primary" id="phClose" data-i18n="close"></button>
+    </div>
+  </div>
+
+  <!-- Raport po grze -->
+  <div class="modal hidden" id="reportModal">
+    <div class="modal-box wide">
+      <div class="rep-head">
+        <h2 data-i18n="r_title"></h2>
+        <button class="btn-ghost" id="repClose" data-i18n="close"></button>
+      </div>
+      <div id="repBody"></div>
+      <div class="rep-actions">
+        <span class="field" data-i18n="r_download"></span>
+        <div class="rep-formats" id="repFormats"></div>
+        <button class="btn-ok" id="repSave" data-i18n="r_save_now"></button>
+      </div>
+      <div class="rep-saved" id="repSaved"></div>
     </div>
   </div>
 

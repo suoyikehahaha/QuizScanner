@@ -1,7 +1,7 @@
 @echo off
 rem Instalator QuizScanner dla Windows (wersja ze źródeł - alternatywa dla .exe).
 rem Wymaga zainstalowanego Pythona 3 (python.org, zaznacz "Add to PATH").
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 echo ==================================================
 echo   Instalacja QuizScanner (Windows, ze źródeł)

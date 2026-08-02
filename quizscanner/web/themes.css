@@ -1,0 +1,132 @@
+/* Motywy kolorystyczne QuizScanner.
+   Każdy motyw definiuje ten sam komplet zmiennych, więc panel, edytor i
+   tablica przebierają się jednym atrybutem na <html>:
+
+       <html data-theme="ocean">
+
+   Grupy zmiennych:
+     --accent*        sygnatura (przyciski, akcenty, pasek czasu)
+     --ink*           powierzchnie tablicy i pasków nagłówka
+     --paper/--card   tło i karty panelu oraz edytora
+     --a/--b/--c/--d  kolory odpowiedzi A/B/C/D
+   Domyślnym motywem jest ciemny (patrz :root poniżej) — także zanim
+   JavaScript zdąży odczytać ustawienia z serwera. */
+
+:root { --on-accent: #fff; }   /* tekst na tle akcentu */
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --accent: #e2603f; --accent-2: #f07a5a; --accent-soft: #34212166;
+
+  --ink: #14161f; --ink-2: #1b1e2b; --ink-3: #242938;
+  --ink-line: #313749; --ink-text: #eef0f6; --ink-muted: #8b91a4;
+  --board-glow: #20263a;
+
+  --paper: #101219; --card: #1a1d29; --line: #2b3145;
+  --field: #12141d; --text: #e8eaf2; --muted: #8b91a4; --toggle-off: #3a4054;
+
+  --a: #e8a13c; --b: #2f9fb3; --c: #8a7bef; --d: #4faa6a;
+  --ok: #4faa6a; --bad: #d9573d;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --accent: #e2603f; --accent-2: #c44e30; --accent-soft: #fbe9e3;
+
+  --ink: #14161f; --ink-2: #1b1e2b; --ink-3: #242938;
+  --ink-line: #313749; --ink-text: #eef0f6; --ink-muted: #8b91a4;
+  --board-glow: #20263a;
+
+  --paper: #f4f2ec; --card: #ffffff; --line: #e6e2d8;
+  --field: #ffffff; --text: #232733; --muted: #868b99; --toggle-off: #cfcabd;
+
+  --a: #e8a13c; --b: #2f9fb3; --c: #8a7bef; --d: #4faa6a;
+  --ok: #4faa6a; --bad: #d9573d;
+}
+
+/* Ocean — granat i turkus, chłodny motyw na rzutnik w jasnej sali. */
+:root[data-theme="ocean"] {
+  color-scheme: dark;
+  --accent: #33b0d6; --accent-2: #6fd3f2; --accent-soft: #14313f;
+
+  --ink: #0a1622; --ink-2: #10202f; --ink-3: #17293b;
+  --ink-line: #21384c; --ink-text: #e6f3fa; --ink-muted: #7d9ab0;
+  --board-glow: #123449;
+
+  --paper: #071018; --card: #0f1d28; --line: #1d3245;
+  --field: #0a1721; --text: #e2eef6; --muted: #7d9ab0; --toggle-off: #2a4257;
+
+  --a: #f0b24a; --b: #35c1c8; --c: #7f9df5; --d: #46bd8c;
+  --ok: #46bd8c; --bad: #e2654f;
+}
+
+/* Las — głęboka zieleń z limonkowym akcentem. */
+:root[data-theme="forest"] {
+  color-scheme: dark;
+  --accent: #7fc243; --accent-2: #a3dd6d; --accent-soft: #1e2c17;
+
+  --ink: #101710; --ink-2: #172117; --ink-3: #1f2c1e;
+  --ink-line: #2b3a29; --ink-text: #eaf3e6; --ink-muted: #8ba184;
+  --board-glow: #1d2f1c;
+
+  --paper: #0c120c; --card: #151d14; --line: #263424;
+  --field: #101710; --text: #e6efe3; --muted: #8ba184; --toggle-off: #33452f;
+
+  --a: #e0a83a; --b: #3fb0a6; --c: #9b8bf0; --d: #6cc258;
+  --ok: #6cc258; --bad: #d9603f;
+}
+
+/* Zachód słońca — śliwka i koral, ciepły motyw wieczorny. */
+:root[data-theme="sunset"] {
+  color-scheme: dark;
+  --accent: #ff7a59; --accent-2: #ffa07f; --accent-soft: #3a1e28;
+
+  --ink: #1a1020; --ink-2: #23172d; --ink-3: #2e1f3a;
+  --ink-line: #3d2a4a; --ink-text: #f7ecf5; --ink-muted: #a891b3;
+  --board-glow: #34203f;
+
+  --paper: #150c1a; --card: #1f1428; --line: #33223f;
+  --field: #180e1e; --text: #f3e8f2; --muted: #a891b3; --toggle-off: #46304f;
+
+  --a: #ffb648; --b: #4fb8c9; --c: #b98cf5; --d: #58c78c;
+  --ok: #58c78c; --bad: #ef5f5f;
+}
+
+/* Cukierkowy — jasny, wysokonasycony motyw dla młodszych klas. */
+:root[data-theme="candy"] {
+  color-scheme: light;
+  --accent: #e0399b; --accent-2: #b32a7b; --accent-soft: #ffe4f3;
+
+  --ink: #2a1030; --ink-2: #3a1742; --ink-3: #4a2154;
+  --ink-line: #5c2f66; --ink-text: #fdeaf7; --ink-muted: #c79ad0;
+  --board-glow: #4a1c55;
+
+  --paper: #fff5fb; --card: #ffffff; --line: #f2d8e8;
+  --field: #ffffff; --text: #35243a; --muted: #997a9e; --toggle-off: #e2c4d8;
+
+  --a: #f5a623; --b: #29b6c9; --c: #8c5cf0; --d: #3fbf7a;
+  --ok: #3fbf7a; --bad: #e0455f;
+}
+
+/* Wysoki kontrast — czerń i żółć, do sal z mocno oświetlonym ekranem. */
+:root[data-theme="contrast"] {
+  color-scheme: dark;
+  --on-accent: #000;   /* żółty akcent wymaga czarnego napisu */
+  --accent: #ffd400; --accent-2: #ffe552; --accent-soft: #332c00;
+
+  --ink: #000000; --ink-2: #0d0d0d; --ink-3: #1a1a1a;
+  --ink-line: #4d4d4d; --ink-text: #ffffff; --ink-muted: #c2c2c2;
+  --board-glow: #1a1a1a;
+
+  --paper: #000000; --card: #101010; --line: #4d4d4d;
+  --field: #000000; --text: #ffffff; --muted: #c2c2c2; --toggle-off: #555555;
+
+  --a: #ffd400; --b: #00d8ff; --c: #ff8ae0; --d: #6dff5e;
+  --ok: #6dff5e; --bad: #ff5c4d;
+}
+
+/* Przyciski „ghost" muszą być czytelne w obu rodzajach motywów. */
+.btn-ghost { background: var(--ink-3); color: var(--ink-text); }
+:root[data-theme="light"] .btn-ghost { background: #ece8df; color: #3a3f4b; }
+:root[data-theme="candy"] .btn-ghost { background: #f7e2ee; color: #5b2a4c; }

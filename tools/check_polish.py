@@ -43,6 +43,10 @@ def find_issues(text):
     """Zwraca listę (numer linii, słowo, propozycja, fragment linii)."""
     out = []
     for i, line in enumerate(text.splitlines(), 1):
+        # Furtka na wyjątki: linia z "polish-ok" nie jest sprawdzana
+        # (np. lista funkcji trygonometrycznych, gdzie "cos" to cosinus).
+        if "polish-ok" in line:
+            continue
         for m in PATTERN.finditer(line):
             word = m.group(0)
             if word.lower() in NEVER_TOUCH:

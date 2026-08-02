@@ -108,9 +108,42 @@ function render(st) {
   return renderIdle(st);
 }
 
+// ---- dźwięki ----
+// Tablica reaguje na zmiany stanu, a nie na kliknięcia, więc sygnały
+// wyzwalamy porównując kolejne odpowiedzi serwera.
+let prev = { phase: null, index: null, sec: null };
+
+function cues(st) {
+  if (!Sound.enabled) return;
+  const sec = st.time_left != null ? Math.ceil(st.time_left) : null;
+
+  if (st.phase !== prev.phase || st.index !== prev.index) {
+    if (st.phase === "question") Sound.play("start");
+    else if (st.phase === "reveal") Sound.play("reveal");
+    else if (st.phase === "podium") Sound.play("podium");
+    else if (prev.phase === "reveal") Sound.play("next");
+  } else if (st.phase === "question" && sec != null && sec !== prev.sec) {
+    // Odliczanie: ostatnie pięć sekund, ostatnia wyraźnie wyżej.
+    if (sec === 0) Sound.play("timeup");
+    else if (sec <= 5) Sound.play(sec === 1 ? "tickLast" : "tick");
+  }
+  prev = { phase: st.phase, index: st.index, sec };
+}
+
+// Przeglądarka nie zagra nic, dopóki ktoś nie kliknie w stronę.
+function soundGate() {
+  const el = document.getElementById("soundGate");
+  if (!el) return;
+  el.classList.toggle("hidden", !Sound.blocked);
+  el.textContent = t("b_sound_locked");
+}
+document.addEventListener("pointerdown", () => { Sound.unlock(); soundGate(); });
+document.addEventListener("keydown", () => { Sound.unlock(); soundGate(); });
+
 async function tick() {
   try {
     const st = await (await fetch("/api/state")).json();
+    cues(st);
     const key = document.documentElement.lang + st.phase + st.index + st.answered
       + JSON.stringify(st.distribution)
       + (st.phase === "podium" ? JSON.stringify(st.leaderboard) : "");
@@ -128,17 +161,19 @@ async function tick() {
   } catch (e) { /* serwer chwilowo niedostępny */ }
 }
 
-// Zmiana języka (ustawiona w panelu) ma odświeżyć tablice.
-async function pollLang() {
+// Język, motyw i dźwięk zmienia się w panelu nauczyciela — tablica dopytuje,
+// żeby ustawienia działały też na drugim komputerze przy rzutniku.
+async function pollSettings() {
   try {
-    const s = await (await fetch("/api/settings")).json();
-    if ((s.lang || "pl") !== document.documentElement.lang) setLang(s.lang || "pl");
+    applyServerSettings(await (await fetch("/api/settings")).json());
+    soundGate();
   } catch (e) { }
 }
 
 (async function init() {
   await initLang();
+  soundGate();
   tick();
   setInterval(tick, 350);
-  setInterval(pollLang, 2000);
+  setInterval(pollSettings, 2000);
 })();

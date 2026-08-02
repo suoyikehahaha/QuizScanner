@@ -304,16 +304,32 @@ $("cardsBtn").onclick = async () => {
   window.open("/api/cards.pdf", "_blank");
 };
 
-// ---------- język ----------
+// ---------- język i motyw ----------
 $("langSel").onchange = async () => {
   await api("/api/settings", { lang: $("langSel").value });
   setLang($("langSel").value);
 };
-document.addEventListener("i18n:changed", () => { if (quiz) renderAll(); });
+$("themeSel").onchange = async () => {
+  setTheme($("themeSel").value);
+  await api("/api/settings", { theme: $("themeSel").value });
+};
+document.addEventListener("i18n:changed", () => {
+  fillThemeSelect($("themeSel"));
+  if (quiz) renderAll();
+});
+
+// ---------- przybornik matematyczny ----------
+$("mathToggle").onclick = () => {
+  const on = $("mathPanel").classList.toggle("collapsed");
+  $("mathToggle").textContent = t(on ? "mb_show" : "mb_hide");
+};
 
 // ---------- start ----------
 (async function init() {
   await initLang();
+  fillThemeSelect($("themeSel"));
+  $("themeSel").value = document.documentElement.dataset.theme || "dark";
+  MathBar.mount($("mathBox"));
   $("langSel").value = document.documentElement.lang;
   const r = await api("/api/quizzes");
   if (r.quizzes && r.quizzes.length) await selectQuiz(r.active || r.quizzes[0]);

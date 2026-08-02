@@ -8,9 +8,9 @@ Każda karta zawiera:
   - nagłówek z numerem ID i (opcjonalnie) imieniem ucznia.
 
 Użycie:
-  python generate_cards.py --count 30
-  python generate_cards.py --names students.csv
-  python generate_cards.py --count 30 --out karty --card-mm 148 210
+  python -m quizscanner.cards --count 30
+  python -m quizscanner.cards --names data/students.csv
+  python -m quizscanner.cards --count 30 --out karty --card-mm 148 210
 
 Wynik:
   - PNG każdej karty w folderze wyjściowym (do druku 1 na stronę),
@@ -25,8 +25,8 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from aruco_common import get_dictionary, ANSWER_LABELS
-from i18n import t
+from .aruco import get_dictionary, ANSWER_LABELS
+from .i18n import t
 
 
 # Czcionki TrueType -- potrzebne, bo cv2.putText nie potrafi narysować

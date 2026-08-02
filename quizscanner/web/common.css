@@ -1,35 +1,10 @@
 /* QuizScanner — własny system wizualny "Scan"
-   Sygnatura: ciemny atrament + terrakota, narożniki jak w znaczniku ArUco,
-   litery odpowiedzi w okrągłych żetonach (bez kahootowych kształtów). */
+   Sygnatura: atrament + terrakota, narożniki jak w znaczniku ArUco,
+   litery odpowiedzi w okrągłych żetonach (bez kahootowych kształtów).
+
+   Kolory siedzą w themes.css (motyw ciemny jest domyślny) — tutaj tylko
+   rzeczy niezależne od motywu. */
 :root {
-  /* Chrome / sygnatura */
-  --accent: #e2603f;      /* terrakota */
-  --accent-2: #c44e30;
-  --accent-soft: #fbe9e3;
-
-  /* Atrament (tablica, ciemne powierzchnie) */
-  --ink: #14161f;
-  --ink-2: #1b1e2b;
-  --ink-3: #242938;
-  --ink-line: #313749;
-  --ink-text: #eef0f6;
-  --ink-muted: #8b91a4;
-
-  /* Powierzchnie jasne (panel, edytor) */
-  --paper: #f4f2ec;
-  --card: #ffffff;
-  --line: #e6e2d8;
-  --text: #232733;
-  --muted: #868b99;
-
-  /* Paleta odpowiedzi — własna, stonowana */
-  --a: #e8a13c;   /* amber   */
-  --b: #2f9fb3;   /* teal    */
-  --c: #8a7bef;   /* fiolet  */
-  --d: #4faa6a;   /* szałwia */
-
-  --ok: #4faa6a;
-  --bad: #d9573d;
   --font: "Segoe UI", Inter, system-ui, Arial, sans-serif;
 }
 
@@ -57,12 +32,12 @@ button:hover { filter: brightness(1.05); }
 button:active { transform: translateY(1px); }
 button:disabled { opacity: .4; cursor: not-allowed; }
 
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-ok { background: var(--ok); color: #fff; }
-.btn-warn { background: #e8a13c; color: #241800; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-ok { background: var(--ok); color: #06210f; }
+.btn-warn { background: var(--a); color: #241800; }
 .btn-danger { background: var(--bad); color: #fff; }
-.btn-ghost { background: #ece8df; color: #3a3f4b; }
 .btn-outline { background: transparent; border-color: var(--line); color: var(--text); }
+/* .btn-ghost zależy od motywu — patrz themes.css */
 
 /* Żeton litery odpowiedzi (wspólny znak identyfikacyjny) */
 .badge {

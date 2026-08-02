@@ -13,7 +13,8 @@ import tkinter as tk
 import webbrowser
 from tkinter import messagebox
 
-import app  # build_server / stop_server / lan_ip
+from quizscanner import server as app  # build_server / stop_server / lan_ip
+from quizscanner import VERSION
 
 
 class Launcher:
@@ -28,7 +29,7 @@ class Launcher:
 
         tk.Label(root, text="QuizScanner", font=("Segoe UI", 22, "bold"),
                  fg="#e2603f", bg="#14161f").pack(pady=(18, 2))
-        tk.Label(root, text="System quizowy z odczytem kart z kamery",
+        tk.Label(root, text=f"System quizowy z odczytem kart z kamery  ·  v{VERSION}",
                  fg="#8b91a4", bg="#14161f").pack()
 
         cfg = tk.Frame(root, bg="#14161f")
@@ -118,37 +119,8 @@ def run():
     root.mainloop()
 
 
-def _selftest():
-    """Diagnostyka: startuje serwer, odpytuje się, zapisuje wynik do pliku."""
-    import json
-    import os
-    import tempfile
-    import threading
-    import time
-    import traceback
-    import urllib.request
-    logp = os.path.join(tempfile.gettempdir(), "qs_selftest.txt")
-    try:
-        httpd = app.build_server(port=8061, no_camera=True)
-        threading.Thread(target=httpd.serve_forever, daemon=True).start()
-        time.sleep(1.0)
-        st = json.load(urllib.request.urlopen("http://127.0.0.1:8061/api/state"))
-        html = urllib.request.urlopen("http://127.0.0.1:8061/teacher").read()
-        pdf = urllib.request.urlopen("http://127.0.0.1:8061/api/cards.pdf?count=3").read()
-        pdf_ok = pdf[:4] == b"%PDF"
-        msg = (f"OK quiz={st['quiz_title']} total={st['total']} "
-               f"teacher_bytes={len(html)} cards_pdf_ok={pdf_ok} pdf_bytes={len(pdf)}")
-        app.stop_server(httpd)
-    except Exception:
-        msg = "FAIL\n" + traceback.format_exc()
-    with open(logp, "w", encoding="utf-8") as f:
-        f.write(msg)
-
-
 if __name__ == "__main__":
-    if "--selftest" in sys.argv:
-        _selftest()
-        sys.exit(0)
+    # Diagnostyka przeniesiona do tools/selftest.py (działa bez tkintera).
     # Tryb konsolowy (bez okna): QuizScanner.exe --serve [--port ... --no-camera]
     if "--serve" in sys.argv:
         sys.argv.remove("--serve")

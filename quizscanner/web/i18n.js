@@ -9,12 +9,15 @@ const I18N = {
     lang_label: "Język",
     yes: "Tak", no: "Nie",
     save: "Zapisz", cancel: "Anuluj", delete: "Usuń", close: "Zamknij",
+    theme_label: "Motyw kolorystyczny",
+    theme_dark: "🌙 Ciemny", theme_light: "☀️ Jasny", theme_ocean: "🌊 Ocean",
+    theme_forest: "🌲 Las", theme_sunset: "🌅 Zachód słońca",
+    theme_candy: "🍬 Cukierkowy", theme_contrast: "◐ Wysoki kontrast",
 
     // --- panel nauczyciela ---
     t_load: "Wczytaj",
     t_editor: "✏️ Edytor",
     t_board: "📺 Tablica",
-    t_export: "⬇ Eksport wyników",
     t_no_quizzes: "— brak quizów, użyj edytora —",
     t_lan_board: "Tablica w sieci",
     t_cam_title: "Podgląd kamery (skaner)",
@@ -45,9 +48,45 @@ const I18N = {
     t_no_results: "Brak wyników",
     t_load_quiz_first: "Wczytaj quiz, aby rozpocząć.",
     t_confirm_reset: "Wyzerować punkty i zacząć od nowa?",
-    t_saved_results: "Zapisano wyniki:",
     t_only_known: "Tylko uczniowie z listy",
     t_only_known_sub: "Ignoruje kody spoza listy — chroni przed przypadkowymi wykryciami w tle.",
+    t_sound_label: "Dźwięki tablicy",
+    t_sound_sub: "Sygnały startu, odliczania, wyniku i podium na ekranie z rzutnika.",
+    t_volume: "Głośność",
+    t_auto_report_label: "Automatyczny raport",
+    t_auto_report_sub: "Po ostatnim pytaniu raport zapisuje się sam do folderu z raportami.",
+
+    // --- raport ---
+    t_report: "📊 Raport",
+    r_title: "Raport z quizu",
+    r_download: "Pobierz jako",
+    r_save_now: "💾 Zapisz na dysk",
+    r_saved_to: "Zapisano w:",
+    r_open_folder: "Folder raportów:",
+    r_recent: "Ostatnio zapisane",
+    r_no_recent: "Brak zapisanych raportów",
+    r_empty: "Rozegraj chociaż jedno pytanie, żeby powstał raport.",
+    r_stat_students: "Uczniowie",
+    r_stat_questions: "Pytania",
+    r_stat_avg: "Średnio poprawnych",
+    r_stat_best: "Najlepszy wynik",
+    r_hardest: "Najtrudniejsze pytanie",
+    r_col_place: "#", r_col_student: "Uczeń", r_col_points: "Punkty",
+    r_col_correct: "Poprawne", r_col_percent: "Skuteczność",
+    r_fmt_pdf: "PDF", r_fmt_csv: "CSV", r_fmt_xlsx: "Excel",
+    r_fmt_html: "HTML", r_fmt_json: "JSON", r_fmt_txt: "TXT",
+
+    // --- aktualizacje ---
+    u_available: "Dostępna nowa wersja {version} (masz {current}).",
+    u_update_now: "⬇ Zaktualizuj teraz",
+    u_open_page: "Otwórz stronę wydania",
+    u_downloading: "Pobieram aktualizację…",
+    u_ready: "Aktualizacja pobrana — zamknij program, żeby dokończyć wymianę.",
+    u_failed: "Nie udało się pobrać aktualizacji.",
+    u_source_hint: "Wersja ze źródeł — zaktualizuj poleceniem git pull.",
+    u_check_label: "Sprawdzaj aktualizacje",
+    u_check_sub: "Raz na uruchomienie pyta GitHuba o nowsze wydanie.",
+    u_up_to_date: "Masz najnowszą wersję.",
 
     // --- tablica ---
     b_question_of: "Pytanie {n} z {total}",
@@ -59,6 +98,18 @@ const I18N = {
     b_end_kicker: "Koniec quizu",
     b_standings: "Klasyfikacja",
     b_no_results: "Brak wyników",
+    b_sound_locked: "🔇 Kliknij ekran, aby włączyć dźwięki",
+
+    // --- przybornik matematyczny ---
+    mb_title: "Przybornik matematyczny",
+    mb_hide: "Zwiń", mb_show: "Rozwiń",
+    mb_basic: "Podstawowe", mb_powers: "Potęgi i ułamki", mb_greek: "Greka",
+    mb_sets: "Zbiory i logika", mb_geo: "Geometria", mb_calc: "Analiza",
+    mb_tpl_frac: "a/b", mb_tpl_sqrt: "√( )", mb_tpl_pow: "x²",
+    mb_tpl_index: "x₁", mb_tpl_interval: "przedział", mb_tpl_system: "układ",
+    mb_to_sup: "Zaznaczone → w indeks górny",
+    mb_to_sub: "Zaznaczone → w indeks dolny",
+    mb_hint: "Kliknij pole pytania lub odpowiedzi, potem symbol. Zaznaczony fragment trafia w środek szablonu.",
 
     // --- edytor ---
     e_title: "QuizScanner · Edytor",
@@ -127,11 +178,14 @@ const I18N = {
     lang_label: "Language",
     yes: "Yes", no: "No",
     save: "Save", cancel: "Cancel", delete: "Delete", close: "Close",
+    theme_label: "Colour theme",
+    theme_dark: "🌙 Dark", theme_light: "☀️ Light", theme_ocean: "🌊 Ocean",
+    theme_forest: "🌲 Forest", theme_sunset: "🌅 Sunset",
+    theme_candy: "🍬 Candy", theme_contrast: "◐ High contrast",
 
     t_load: "Load",
     t_editor: "✏️ Editor",
     t_board: "📺 Board",
-    t_export: "⬇ Export results",
     t_no_quizzes: "— no quizzes, use the editor —",
     t_lan_board: "Board on network",
     t_cam_title: "Camera preview (scanner)",
@@ -162,9 +216,43 @@ const I18N = {
     t_no_results: "No results",
     t_load_quiz_first: "Load a quiz to begin.",
     t_confirm_reset: "Reset all points and start over?",
-    t_saved_results: "Results saved:",
     t_only_known: "Only students on the list",
     t_only_known_sub: "Ignores codes outside the list — protects against accidental detections in the background.",
+    t_sound_label: "Board sounds",
+    t_sound_sub: "Cues for question start, countdown, reveal and podium on the projector screen.",
+    t_volume: "Volume",
+    t_auto_report_label: "Automatic report",
+    t_auto_report_sub: "After the last question the report is saved to the reports folder on its own.",
+
+    t_report: "📊 Report",
+    r_title: "Quiz report",
+    r_download: "Download as",
+    r_save_now: "💾 Save to disk",
+    r_saved_to: "Saved in:",
+    r_open_folder: "Reports folder:",
+    r_recent: "Recently saved",
+    r_no_recent: "No saved reports yet",
+    r_empty: "Play at least one question to get a report.",
+    r_stat_students: "Students",
+    r_stat_questions: "Questions",
+    r_stat_avg: "Average correct",
+    r_stat_best: "Top score",
+    r_hardest: "Hardest question",
+    r_col_place: "#", r_col_student: "Student", r_col_points: "Points",
+    r_col_correct: "Correct", r_col_percent: "Accuracy",
+    r_fmt_pdf: "PDF", r_fmt_csv: "CSV", r_fmt_xlsx: "Excel",
+    r_fmt_html: "HTML", r_fmt_json: "JSON", r_fmt_txt: "TXT",
+
+    u_available: "New version {version} is available (you have {current}).",
+    u_update_now: "⬇ Update now",
+    u_open_page: "Open release page",
+    u_downloading: "Downloading update…",
+    u_ready: "Update downloaded — close the app to finish the swap.",
+    u_failed: "Could not download the update.",
+    u_source_hint: "Running from source — update with git pull.",
+    u_check_label: "Check for updates",
+    u_check_sub: "Asks GitHub once per launch whether a newer release exists.",
+    u_up_to_date: "You are on the latest version.",
 
     b_question_of: "Question {n} of {total}",
     b_scanned: "Scanned:",
@@ -175,6 +263,17 @@ const I18N = {
     b_end_kicker: "Quiz finished",
     b_standings: "Final standings",
     b_no_results: "No results",
+    b_sound_locked: "🔇 Click the screen to enable sounds",
+
+    mb_title: "Maths toolbox",
+    mb_hide: "Collapse", mb_show: "Expand",
+    mb_basic: "Basics", mb_powers: "Powers & fractions", mb_greek: "Greek",
+    mb_sets: "Sets & logic", mb_geo: "Geometry", mb_calc: "Calculus",
+    mb_tpl_frac: "a/b", mb_tpl_sqrt: "√( )", mb_tpl_pow: "x²",
+    mb_tpl_index: "x₁", mb_tpl_interval: "interval", mb_tpl_system: "system",
+    mb_to_sup: "Selection → superscript",
+    mb_to_sub: "Selection → subscript",
+    mb_hint: "Click a question or answer field, then a symbol. A selected fragment goes inside the template.",
 
     e_title: "QuizScanner · Editor",
     e_tab_quiz: "Quizzes",
@@ -267,10 +366,42 @@ function applyI18n(root) {
   document.dispatchEvent(new CustomEvent("i18n:changed"));
 }
 
-// Pobiera język z serwera (wspólny dla panelu i tablicy) i stosuje go.
+// ---------- motyw kolorystyczny ----------
+// Nazwy muszą zgadzać się z selektorami [data-theme] w themes.css.
+const THEMES = ["dark", "light", "ocean", "forest", "sunset", "candy", "contrast"];
+
+function setTheme(name) {
+  const theme = THEMES.includes(name) ? name : "dark";
+  if (document.documentElement.dataset.theme !== theme)
+    document.documentElement.dataset.theme = theme;
+}
+
+// Wypełnia <select> listą motywów (nazwy tłumaczone jak reszta interfejsu).
+function fillThemeSelect(el) {
+  if (!el) return;
+  const current = el.value || document.documentElement.dataset.theme || "dark";
+  el.innerHTML = THEMES.map(
+    name => `<option value="${name}">${t("theme_" + name)}</option>`).join("");
+  el.value = current;
+}
+
+// Jedno miejsce, w którym ustawienia z serwera trafiają do interfejsu.
+// Wywołują to zarówno panel i edytor (raz przy starcie), jak i tablica
+// (co kilka sekund — dzięki temu zmiana motywu od razu widać na rzutniku).
+let i18nApplied = false;   // pierwsze wywołanie musi podmienić teksty w HTML
+
+function applyServerSettings(s) {
+  s = s || {};
+  const lang = s.lang || "pl";
+  if (!i18nApplied || lang !== LANG) { setLang(lang); i18nApplied = true; }
+  setTheme(s.theme);
+  if (typeof Sound !== "undefined") Sound.configure(s);
+  return s;
+}
+
+// Pobiera wspólne ustawienia z serwera (język, motyw, dźwięk) i stosuje je.
 async function initLang() {
   try {
-    const s = await (await fetch("/api/settings")).json();
-    setLang(s.lang || "pl");
-  } catch (e) { setLang("pl"); }
+    return applyServerSettings(await (await fetch("/api/settings")).json());
+  } catch (e) { setLang("pl"); i18nApplied = true; return {}; }
 }

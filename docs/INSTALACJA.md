@@ -55,8 +55,8 @@ Plik `.exe` działa tylko na Windows. Na Linux/macOS instaluje się ze źródeł
 ### 2. Zainstaluj
 W terminalu, w folderze projektu:
 ```bash
-chmod +x install.sh
-./install.sh
+chmod +x scripts/install.sh
+./scripts/install.sh
 ```
 Skrypt utworzy środowisko `.venv`, zainstaluje zależności i przygotuje `start.sh`.
 
@@ -77,7 +77,7 @@ Otworzy się przeglądarka z panelem nauczyciela. Inna kamera: `./start.sh --cam
 
 Jeśli wolisz nie używać gotowego pliku: zainstaluj Pythona z
 [python.org](https://www.python.org/downloads/) (zaznacz **„Add Python to PATH"**),
-potem dwuklik w **`install-windows.bat`**. Po instalacji uruchamiaj przez
+potem dwuklik w **`scripts\install-windows.bat`**. Po instalacji uruchamiaj przez
 **`Uruchom.bat`** lub `python launcher.py`.
 
 ---
@@ -101,7 +101,7 @@ zaznacz poprawną, ustaw czas i punkty). Zapisz.
 > jako `karty_przykladowe_40.pdf`.
 >
 > Wersja ze źródeł ma dodatkowo skrypt:
-> `python generate_cards.py --names students.csv` (tworzy PNG + `karty.pdf`).
+> `python -m quizscanner.cards --names data/students.csv` (tworzy PNG + `karty.pdf`).
 
 ### 2b. Nie masz kamery? Użyj telefonu
 1. Zainstaluj w telefonie **IP Webcam** (Android) albo **Iriun Webcam** /
@@ -161,5 +161,6 @@ pytania i na koniec wyświetla ranking. Nie musisz nic klikać. Czasy
 | Nie zapisują się quizy / wyniki | Przenieś `.exe` do folderu z prawem zapisu (Pulpit, Dokumenty), nie do `Program Files`. |
 | Pierwsze uruchomienie długo trwa | Jednoplikowy `.exe` rozpakowuje się przy starcie (kilka sekund). Kolejne uruchomienia są tak samo szybkie. |
 
-Gdzie są dane: quizy w folderze `quizzes/`, lista uczniów `students.csv`,
-wyniki `wyniki_<data>.csv` — wszystko **obok** pliku programu (`.exe`).
+Gdzie są dane: wszystko siedzi w folderze **`data/`** obok programu — quizy
+w `data/quizzes/`, lista uczniów `data/students.csv`, zdjęcia i filmy
+w `data/media/`, raporty z rozegranych quizów w `data/raporty/`.

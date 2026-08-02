@@ -6,8 +6,8 @@ Uruchamia:
   - serwer HTTP z panelem nauczyciela, tablica i edytorem.
 
 Użycie:
-  python app.py                 # kamera 0, port 8000, otwiera przeglądarkę
-  python app.py --camera 1 --port 8000 --no-browser
+  python -m quizscanner                 # kamera 0, port 8000, otwiera przeglądarkę
+  python -m quizscanner --camera 1 --port 8000 --no-browser
 
 Adresy:
   Panel nauczyciela : http://localhost:PORT/teacher
@@ -20,7 +20,6 @@ import argparse
 import json
 import os
 import re
-import shutil
 import socket
 import sys
 import threading
@@ -29,32 +28,25 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-from quiz_session import QuizSession, PHASE_IDLE
-from camera_worker import CameraScanner
+from . import VERSION
+from . import report as report_mod
+from . import updater
+from .paths import (DATA_DIR, MEDIA_DIR, QUIZ_DIR, REPORT_DIR, ROSTER_JSON,
+                    SETTINGS_JSON, STUDENTS_CSV, WEB_DIR, seed_data)
+from .session import QuizSession, PHASE_IDLE
+from .camera import CameraScanner
 
-# Ścieżki działają tak samo z kodu źródłowego, jak i w spakowanym .exe
-# (PyInstaller). RES_DIR = zasoby tylko-do-odczytu (web/), DATA_DIR =
-# folder zapisywalny obok programu (quizy, roster, wyniki).
-if getattr(sys, "frozen", False):
-    RES_DIR = sys._MEIPASS                       # rozpakowane zasoby exe
-    DATA_DIR = os.path.dirname(sys.executable)   # folder z plikiem .exe
-else:
-    RES_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_DIR = RES_DIR
-
-WEB_DIR = os.path.join(RES_DIR, "web")
-QUIZ_DIR = os.path.join(DATA_DIR, "quizzes")
-MEDIA_DIR = os.path.join(DATA_DIR, "media")
-ROSTER_JSON = os.path.join(DATA_DIR, "roster.json")
-STUDENTS_CSV = os.path.join(DATA_DIR, "students.csv")
-SETTINGS_JSON = os.path.join(DATA_DIR, "settings.json")
-
-# Ustawienia aplikacji (zapisywane obok programu).
+# Ustawienia aplikacji (zapisywane w folderze danych).
 DEFAULT_SETTINGS = {
     "lang": "pl",          # język interfejsu: pl / en
     "camera": "0",         # numer kamery albo adres strumienia (telefon)
     "mirror": True,        # lustro w podglądzie (nie wpływa na rozpoznawanie)
     "only_known": True,    # akceptuj tylko ID z listy uczniów
+    "theme": "dark",       # motyw kolorystyczny interfejsu i tablicy
+    "sound": True,         # dźwięki tablicy
+    "volume": 0.6,         # głośność dźwięków (0..1)
+    "auto_report": True,   # zapisuj raport automatycznie po zakończeniu quizu
+    "check_updates": True,  # sprawdzaj nowe wydania na GitHubie
 }
 settings = dict(DEFAULT_SETTINGS)
 
@@ -80,26 +72,9 @@ def save_settings():
         pass
 
 
-def _seed_data():
-    """Przy pierwszym uruchomieniu .exe kopiuje domyślne dane (quizy,
-    lista uczniów) do zapisywalnego folderu obok programu."""
-    if not getattr(sys, "frozen", False):
-        return
-    try:
-        if not os.path.isdir(QUIZ_DIR):
-            src = os.path.join(RES_DIR, "quizzes")
-            if os.path.isdir(src):
-                shutil.copytree(src, QUIZ_DIR)
-        if not os.path.exists(STUDENTS_CSV):
-            src = os.path.join(RES_DIR, "students.csv")
-            if os.path.exists(src):
-                shutil.copy(src, STUDENTS_CSV)
-    except Exception:
-        pass
-
-
 session = QuizSession()
-scanner = None  # ustawiany przy starcie serwera
+scanner = None       # ustawiany przy starcie serwera
+pending_swap = None  # skrypt podmiany pliku po pobraniu aktualizacji
 
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -275,8 +250,8 @@ def build_cards_pdf(count=None):
     import io
     import cv2
     from PIL import Image
-    from aruco_common import get_dictionary
-    from generate_cards import make_card
+    from .aruco import get_dictionary
+    from .cards import make_card
 
     dictionary = get_dictionary()
     with session.lock:
@@ -301,19 +276,22 @@ def build_cards_pdf(count=None):
     return buf.getvalue()
 
 
-def export_results():
-    import csv
-    import datetime as dt
-    stamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = os.path.join(DATA_DIR, f"wyniki_{stamp}.csv")
+AUTOSAVE_FORMATS = ("html", "csv", "json")
+
+
+def save_report(formats=AUTOSAVE_FORMATS):
+    """Zapisuje raport z bieżącej rozgrywki do folderu raportów."""
+    return report_mod.save(report_mod.build(session), REPORT_DIR, formats)
+
+
+def autosave_report(_session=None):
+    """Wywoływane automatycznie, gdy quiz dobiegnie końca (podium)."""
+    if not settings.get("auto_report", True):
+        return []
     with session.lock:
-        board = session.leaderboard()
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        wr = csv.writer(f)
-        wr.writerow(["miejsce", "id", "imię", "punkty"])
-        for i, row in enumerate(board, 1):
-            wr.writerow([i, row["id"], row["name"], row["score"]])
-    return path
+        if not session.history:
+            return []          # nic nie rozegrano -- nie ma czego zapisywać
+    return save_report()
 
 
 # --------------------------- handler ---------------------------
@@ -420,6 +398,39 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/video_feed":
             return self.stream_mjpeg()
 
+        if path == "/api/report":
+            fmt = (query.get("format", ["pdf"])[0] or "pdf").lower()
+            try:
+                blob, ctype, fname = report_mod.render(report_mod.build(session), fmt)
+            except ValueError:
+                return self.send_error(400, "Nieznany format raportu")
+            except Exception as e:
+                return self.send_error(500, f"Błąd raportu: {e}")
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Disposition",
+                             f'attachment; filename="{fname}"')
+            self.send_header("Content-Length", str(len(blob)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(blob)
+            return
+        if path == "/api/report/preview":
+            data = report_mod.build(session)
+            return self.send_json({
+                "summary": data["summary"], "questions": data["questions"],
+                "students": data["students"], "quiz_title": data["quiz_title"],
+                "formats": report_mod.FORMATS,
+                "dir": REPORT_DIR,
+                "saved": report_mod.list_saved(REPORT_DIR),
+            })
+        if path == "/api/update":
+            force = query.get("force", ["0"])[0] == "1"
+            if not settings.get("check_updates", True) and not force:
+                return self.send_json({"current": VERSION, "update": False,
+                                       "disabled": True})
+            return self.send_json(updater.check(force=force))
+
         if path == "/api/cards.pdf":
             c = query.get("count", [None])[0]
             c = int(c) if (c and c.isdigit()) else None
@@ -481,6 +492,9 @@ class Handler(BaseHTTPRequestHandler):
                 "lan_ip": lan_ip(),
                 "port": self.server.server_address[1],
                 "camera_ok": bool(scanner and scanner.camera_ok),
+                "version": VERSION,
+                "report_dir": REPORT_DIR,
+                "data_dir": DATA_DIR,
             })
 
         return self.send_error(404, "Nie znaleziono")
@@ -539,8 +553,18 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json({"ok": True})
 
         if path == "/api/export":
-            p = export_results()
-            return self.send_json({"ok": True, "path": p})
+            fmts = data.get("formats") or list(AUTOSAVE_FORMATS)
+            fmts = [f for f in fmts if f in report_mod.RENDERERS]
+            paths = save_report(fmts or AUTOSAVE_FORMATS)
+            return self.send_json({"ok": bool(paths), "paths": paths,
+                                   "dir": REPORT_DIR})
+
+        if path == "/api/update/apply":
+            res = updater.apply()
+            if res.get("script"):
+                global pending_swap
+                pending_swap = res["script"]
+            return self.send_json(res)
 
         if path == "/api/settings":
             changed_cam = ("camera" in data and
@@ -599,13 +623,15 @@ def build_server(camera=None, port=8000, host="0.0.0.0", no_camera=False):
     launcher uruchamiający serwer w tym samym procesie (działa w .exe)."""
     global scanner
 
-    _seed_data()
+    seed_data()
     load_settings()
     if camera is not None:          # jawny wybór z linii poleceń ma pierwszeństwo
         settings["camera"] = str(camera)
     session.set_roster(load_roster())
     session.set_only_known(bool(settings.get("only_known", True)))
+    session.on_podium = autosave_report
     session.start_auto_engine()
+    updater.check_async(bool(settings.get("check_updates", True)))
 
     quizzes = list_quizzes()
     if quizzes:
@@ -634,6 +660,9 @@ def stop_server(httpd):
     session.stop_auto_engine()
     if httpd:
         httpd.shutdown()
+    # Pobrana aktualizacja czeka na wymianę pliku -- teraz program już nie działa.
+    if pending_swap:
+        updater.run_swap_script(pending_swap)
 
 
 def _utf8_console():
@@ -665,7 +694,7 @@ def main():
     ip = lan_ip()
     if sys.stdout:  # w trybie bezokienkowym (.exe) stdout może być None
         print("=" * 58)
-        print("  QuizScanner uruchomiony")
+        print(f"  QuizScanner {VERSION} uruchomiony")
         print(f"  Panel nauczyciela : http://localhost:{args.port}/teacher")
         print(f"  Tablica (rzutnik) : http://localhost:{args.port}/board")
         print(f"  Edytor pytań      : http://localhost:{args.port}/editor")

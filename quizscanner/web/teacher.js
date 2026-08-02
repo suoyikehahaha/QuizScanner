@@ -23,10 +23,6 @@ $("speedToggle").onchange = () => ctl("speed_bonus", { value: $("speedToggle").c
 $("autoToggle").onchange = () => ctl("auto_mode", { value: $("autoToggle").checked });
 $("editorBtn").onclick = () => window.open("/editor", "_blank");
 $("boardBtn").onclick = () => window.open("/board", "_blank");
-$("exportBtn").onclick = async () => {
-  const r = await api("/api/export", {});
-  if (r.ok) alert(t("t_saved_results") + "\n" + r.path);
-};
 $("loadBtn").onclick = async () => {
   const name = $("quizSel").value;
   if (name) await api("/api/load", { name });
@@ -39,8 +35,23 @@ $("langSel").onchange = async () => {
   setLang($("langSel").value);
   refreshState();
 };
+$("themeSel").onchange = async () => {
+  setTheme($("themeSel").value);          // od razu widać, bez czekania na serwer
+  await api("/api/settings", { theme: $("themeSel").value });
+};
 $("onlyKnownToggle").onchange = () =>
   api("/api/settings", { only_known: $("onlyKnownToggle").checked });
+$("soundToggle").onchange = () =>
+  api("/api/settings", { sound: $("soundToggle").checked });
+$("volume").oninput = () => { $("volVal").textContent = $("volume").value + "%"; };
+$("volume").onchange = () =>
+  api("/api/settings", { volume: +$("volume").value / 100 });
+$("autoReportToggle").onchange = () =>
+  api("/api/settings", { auto_report: $("autoReportToggle").checked });
+$("updateToggle").onchange = async () => {
+  await api("/api/settings", { check_updates: $("updateToggle").checked });
+  checkUpdate();
+};
 $("camApply").onclick = async () => {
   await api("/api/settings", { camera: $("camSrc").value.trim() || "0" });
   // odśwież strumień podglądu (kamera startuje na nowo)
@@ -129,7 +140,119 @@ async function loadSettings() {
   $("langSel").value = s.lang || "pl";
   $("camSrc").value = s.camera != null ? s.camera : "0";
   $("onlyKnownToggle").checked = !!s.only_known;
+  $("soundToggle").checked = s.sound !== false;
+  $("volume").value = Math.round((s.volume != null ? s.volume : 0.6) * 100);
+  $("volVal").textContent = $("volume").value + "%";
+  $("autoReportToggle").checked = s.auto_report !== false;
+  $("updateToggle").checked = s.check_updates !== false;
 }
+
+// ---- raport ----
+const REPORT_FORMATS = ["pdf", "xlsx", "csv", "html", "json", "txt"];
+
+function reportRow(st, total) {
+  return `<tr><td class="p">${st.place}</td><td>${esc(st.name)}</td>
+    <td class="n">#${st.id}</td><td class="n">${st.score}</td>
+    <td class="n">${st.correct}/${total}</td><td class="n">${st.percent}%</td></tr>`;
+}
+
+function renderReport(r) {
+  const s = r.summary;
+  if (!s.questions) {
+    $("repBody").innerHTML = `<p class="muted">${t("r_empty")}</p>`;
+  } else {
+    const hardest = s.hardest_n
+      ? `<p class="muted">${t("r_hardest")}: <b>${s.hardest_n}.</b> ${esc(s.hardest_text)}
+         — ${s.hardest_percent}%</p>` : "";
+    $("repBody").innerHTML = `
+      <div class="rep-cards">
+        <div class="stat"><div class="k">${t("r_stat_students")}</div><div class="v">${s.students}</div></div>
+        <div class="stat"><div class="k">${t("r_stat_questions")}</div><div class="v">${s.questions}</div></div>
+        <div class="stat"><div class="k">${t("r_stat_avg")}</div><div class="v">${s.avg_percent}%</div></div>
+        <div class="stat"><div class="k">${t("r_stat_best")}</div><div class="v sm">${esc(s.best || "—")}</div></div>
+      </div>
+      ${hardest}
+      <table class="students rep-table"><thead><tr>
+        <th>${t("r_col_place")}</th><th>${t("r_col_student")}</th><th>${t("t_col_id")}</th>
+        <th>${t("r_col_points")}</th><th>${t("r_col_correct")}</th><th>${t("r_col_percent")}</th>
+      </tr></thead><tbody>
+        ${r.students.map(st => reportRow(st, s.questions)).join("")}
+      </tbody></table>`;
+  }
+
+  $("repFormats").innerHTML = REPORT_FORMATS.map(f =>
+    `<button class="btn-ghost fmt" data-fmt="${f}">${t("r_fmt_" + f)}</button>`).join("");
+  $("repFormats").querySelectorAll("button").forEach(b => {
+    b.onclick = () => window.open("/api/report?format=" + b.dataset.fmt, "_blank");
+  });
+
+  const saved = (r.saved || []).slice(0, 8);
+  $("repSaved").innerHTML = `<div class="field">${t("r_open_folder")}</div>
+    <code>${esc(r.dir || "")}</code>
+    <div class="field mt">${t("r_recent")}</div>` + (saved.length
+      ? `<ul class="rep-files">${saved.map(f =>
+          `<li>${esc(f.file)} <span class="muted">${Math.round(f.size / 1024)} kB</span></li>`).join("")}</ul>`
+      : `<p class="muted">${t("r_no_recent")}</p>`);
+}
+
+async function openReport() {
+  $("reportModal").classList.remove("hidden");
+  $("repBody").innerHTML = "…";
+  renderReport(await api("/api/report/preview"));
+}
+
+$("reportBtn").onclick = openReport;
+$("repClose").onclick = () => $("reportModal").classList.add("hidden");
+$("reportModal").onclick = e => {
+  if (e.target === $("reportModal")) $("reportModal").classList.add("hidden");
+};
+$("repSave").onclick = async () => {
+  const r = await api("/api/export", {});
+  alert(r.ok ? t("r_saved_to") + "\n" + r.paths.join("\n") : t("r_empty"));
+  renderReport(await api("/api/report/preview"));
+};
+
+// ---- aktualizacje ----
+let updateInfo = null;
+
+async function checkUpdate(force) {
+  try {
+    updateInfo = await api("/api/update" + (force ? "?force=1" : ""));
+  } catch (e) { return; }
+  const bar = $("updateBar");
+  const state = $("updateState");
+  if (updateInfo.disabled) { state.textContent = t("u_check_sub"); bar.classList.add("hidden"); return; }
+  if (updateInfo.update) {
+    $("updateText").textContent = t("u_available", {
+      version: updateInfo.latest, current: updateInfo.current });
+    $("updateBtn").classList.toggle("hidden", !updateInfo.can_apply);
+    bar.classList.remove("hidden");
+    state.textContent = t("u_available", {
+      version: updateInfo.latest, current: updateInfo.current });
+  } else {
+    bar.classList.add("hidden");
+    state.textContent = updateInfo.error ? t("u_check_sub") : t("u_up_to_date");
+  }
+}
+
+$("updateClose").onclick = () => $("updateBar").classList.add("hidden");
+$("updatePage").onclick = () =>
+  window.open((updateInfo && updateInfo.url) || "https://github.com/PiotrKajor/QuizScanner/releases", "_blank");
+$("updateBtn").onclick = async () => {
+  $("updateText").textContent = t("u_downloading");
+  $("updateBtn").disabled = true;
+  const r = await api("/api/update/apply", {});
+  $("updateBtn").disabled = false;
+  if (r.ok) {
+    $("updateText").textContent = t("u_ready");
+    $("updateBtn").classList.add("hidden");
+  } else if (r.error === "source") {
+    $("updateText").textContent = t("u_source_hint");
+    $("updateBtn").classList.add("hidden");
+  } else {
+    $("updateText").textContent = t("u_failed");
+  }
+};
 
 // ---- render ----
 function updateCamNote(cameraOk) {
@@ -219,14 +342,21 @@ async function refreshState() {
 }
 
 // Po zmianie języka odśwież teksty zależne od danych.
-document.addEventListener("i18n:changed", () => { loadQuizList(); loadMeta(); });
+document.addEventListener("i18n:changed", () => {
+  fillThemeSelect($("themeSel"));
+  loadQuizList();
+  loadMeta();
+});
 
 (async function init() {
   await initLang();
+  fillThemeSelect($("themeSel"));
+  $("themeSel").value = document.documentElement.dataset.theme || "dark";
   await loadSettings();
   $("langSel").value = document.documentElement.lang;
   loadQuizList();
   loadMeta();
   refreshState();
+  checkUpdate();
   setInterval(refreshState, 500);
 })();

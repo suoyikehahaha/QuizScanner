@@ -27,9 +27,9 @@ from collections import deque, Counter
 import cv2
 import numpy as np
 
-from aruco_common import (make_detector, answer_from_corners,
+from .aruco import (make_detector, answer_from_corners,
                           marker_is_black_and_white)
-from overlay import TextBatch
+from .overlay import TextBatch
 
 
 # Kolory (BGR) dla poszczególnych odpowiedzi -- czytelny overlay.

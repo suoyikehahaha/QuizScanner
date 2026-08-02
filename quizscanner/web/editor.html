@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QuizScanner — Edytor</title>
   <link rel="icon" href="/static/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/themes.css">
   <link rel="stylesheet" href="/static/common.css">
   <link rel="stylesheet" href="/static/editor.css">
 </head>
@@ -16,6 +17,7 @@
       <button class="tab" id="tabRoster" data-i18n="e_tab_roster"></button>
     </div>
     <div class="spacer"></div>
+    <select id="themeSel" class="lang-sel" data-i18n-title="theme_label"></select>
     <select id="langSel" class="lang-sel">
       <option value="pl">🇵🇱 Polski</option>
       <option value="en">🇬🇧 English</option>
@@ -69,6 +71,15 @@
         <button class="btn-ghost" id="applyAll" style="margin-top:12px" data-i18n="s_apply_all"></button>
       </div>
 
+      <!-- Przybornik matematyczny: wstawia symbole do ostatnio klikniętego pola -->
+      <div class="panel mathbar" id="mathPanel">
+        <div class="panel-head">
+          <h3 class="panel-h" data-i18n="mb_title"></h3>
+          <button class="btn-ghost mb-toggle" id="mathToggle" data-i18n="mb_hide"></button>
+        </div>
+        <div id="mathBox"></div>
+      </div>
+
       <div id="questions"></div>
       <button class="add-q" id="addQ" data-i18n="e_add_question"></button>
     </div>
@@ -101,6 +112,7 @@
   <input type="file" id="mediaFile" accept="image/*,video/mp4,video/webm" hidden>
   <div class="toast" id="toast"></div>
   <script src="/static/i18n.js"></script>
+  <script src="/static/mathbar.js"></script>
   <script src="/static/editor.js"></script>
 </body>
 </html>

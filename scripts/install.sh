@@ -3,10 +3,10 @@
 # Tworzy środowisko wirtualne, instaluje zależności i skrypt startowy.
 #
 # Użycie:
-#   chmod +x install.sh
-#   ./install.sh
+#   chmod +x scripts/install.sh
+#   ./scripts/install.sh
 set -e
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."     # skrypt leży w scripts/, pracujemy w katalogu projektu
 
 echo "=================================================="
 echo "  Instalacja QuizScanner (Linux / macOS)"
@@ -39,7 +39,7 @@ cat > start.sh <<'EOF'
 cd "$(dirname "$0")"
 source .venv/bin/activate
 # Serwer + automatyczne otwarcie przeglądarki (panel nauczyciela).
-python app.py "$@"
+python -m quizscanner "$@"
 EOF
 chmod +x start.sh
 

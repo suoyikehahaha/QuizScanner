@@ -12,9 +12,9 @@ import time
 import cv2
 import numpy as np
 
-from overlay import TextBatch
-from scanner import QuizScanEngine, draw_detection
-from quiz_session import PHASE_QUESTION
+from .overlay import TextBatch
+from .scanner import QuizScanEngine, draw_detection
+from .session import PHASE_QUESTION
 
 
 def _placeholder(text, w=960, h=540):

@@ -53,6 +53,7 @@ class QuizSession:
         self.only_known = True    # ignoruj ID spoza listy uczniów
         self.order = []           # kolejność pytań (może być losowa)
         self.perm = [0, 1, 2, 3]  # kolejność odpowiedzi w bieżącym pytaniu
+        self.on_podium = None     # wywoływane raz, gdy quiz dobiegnie końca
 
         # Tryb automatyczny: quiz sam odsłania wynik i przechodzi dalej.
         self.auto_mode = False
@@ -198,7 +199,16 @@ class QuizSession:
         base = int(q.get("points", 1000) or 0)
         t = float(q.get("time", 20) or 20)
         letter = LETTERS[correct] if isinstance(correct, int) and 0 <= correct < 4 else None
-        result = {"question": q.get("text", ""), "correct": letter, "answers": {}}
+        shown = self.displayed_answers(q)
+        result = {
+            "index": self.index,
+            "question": q.get("text", ""),
+            "options": shown,
+            "correct": letter,
+            "correct_text": shown[correct] if letter else "",
+            "points_max": base,
+            "answers": {},
+        }
         for mid, ans in self.answers.items():
             is_correct = letter is not None and ans == letter
             pts = 0
@@ -221,8 +231,16 @@ class QuizSession:
                 self.index += 1
                 self.phase = PHASE_IDLE
                 self._reset_question_state()
-            else:
-                self.phase = PHASE_PODIUM
+                return
+            finished = self.phase != PHASE_PODIUM
+            self.phase = PHASE_PODIUM
+        # ponytail: raport zapisujemy tu, w wątku wywołującym -- to ułamek
+        # sekundy; osobny wątek dopiero gdyby doszły ciężkie formaty.
+        if finished and self.on_podium:
+            try:
+                self.on_podium(self)
+            except Exception:
+                pass
 
     def prev_question(self):
         with self.lock:
