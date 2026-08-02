@@ -77,6 +77,11 @@ Wymagania: Python 3.10+, `pip install -r requirements.txt pyinstaller`,
   że użytkownicy albo nie dostaną aktualizacji, albo dostaną ją w kółko.
 - **Plik `.exe` musi mieć wersję w nazwie** (`QuizScanner-v3.1.0.exe`) — pod tą
   nazwą aktualizator pobiera i podmienia plik.
+- **Ikoną `.exe` zawsze jest logo programu** (`assets/logo.ico`), nigdy domyślna
+  ikona PyInstallera. Po zmianie `assets/logo.svg` odtwórz ikonę:
+  `python tools/make_icon.py` (rysuje logo Pillow-em, bez zewnętrznych
+  narzędzi) i zacommituj `assets/logo.ico` — build i okno launchera biorą ją
+  z repozytorium.
 - **Zasoby w `.exe` leżą płasko**: `web` i `data` trafiają do `<_MEIPASS>\web`
   i `<_MEIPASS>\data` — dokładnie tak, jak wylicza je `quizscanner/paths.py`.
   Zmiana ścieżek w jednym miejscu wymaga zmiany w drugim.
