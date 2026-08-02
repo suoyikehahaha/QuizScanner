@@ -237,12 +237,17 @@ z pomiarem obrotu — to mechanizm, na którym opiera się Plickers.
 - **AprilTag** (jeszcze większy zasięg): podmień słownik na `DICT_APRILTAG_36h11`.
 - **Karty z wiersza poleceń:** `python -m quizscanner.cards --names data/students.csv --out karty`
 
-## 🧪 Test dymny
+## 🧪 Szybkie sprawdzenie, czy wszystko działa
 
 ```bash
 python tools/selftest.py     # strony, API, karty PDF, przebieg quizu, wszystkie formaty raportu
 python tools/check_polish.py # kontrola polskich znaków w całym repozytorium
 ```
+
+Pierwsze polecenie uruchamia aplikację bez kamery i przechodzi przez nią jak
+nauczyciel: otwiera trzy widoki, generuje karty PDF, rozgrywa cały quiz aż do
+podium i pobiera raport w każdym formacie. Kończy się napisem `SELFTEST OK`.
+Warto puścić po większej zmianie i przed zbudowaniem `.exe`.
 
 ## 📄 Format quizu (JSON w `data/quizzes/`)
 

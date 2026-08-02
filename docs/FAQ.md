@@ -462,8 +462,9 @@ To błąd, zgłoś go proszę — repozytorium ma nawet własny test tego
 <details>
 <summary><b>Coś innego nie działa.</b></summary>
 
-Uruchom `python tools/selftest.py` — sprawdza strony, API, karty PDF, przebieg
-quizu i wszystkie formaty raportu. Wynik wklej do zgłoszenia w
+Uruchom `python tools/selftest.py` — to szybkie sprawdzenie, czy wszystko
+działa: strony, API, karty PDF, przebieg quizu i wszystkie formaty raportu.
+Wynik wklej do zgłoszenia w
 [Issues](https://github.com/PiotrKajor/QuizScanner/issues).
 </details>
 

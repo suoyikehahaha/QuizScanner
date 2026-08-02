@@ -1,6 +1,6 @@
 """
-Test dymny QuizScannera — startuje serwer bez kamery i sprawdza,
-czy najważniejsze rzeczy naprawdę działają.
+Szybkie sprawdzenie, czy wszystko działa — startuje serwer bez kamery
+i przechodzi przez aplikację tak, jak zrobiłby to nauczyciel.
 
     python tools/selftest.py
 

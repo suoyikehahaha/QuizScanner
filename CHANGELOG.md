@@ -27,8 +27,8 @@ Format: [wersja] — co nowego z punktu widzenia nauczyciela.
 - W raportach (PDF, Excel, CSV, HTML, TXT) wzory zapisywane są czytelnym
   tekstem: `$\frac{1}{2}$` → `(1)/(2)`, `$\sqrt[3]{27}$` → `³√(27)`. Pełny
   zapis LaTeX zostaje w eksporcie JSON.
-- Test dymny sprawdza dodatkowo zasoby KaTeX (razem z typem MIME czcionek)
-  i zamianę wzorów na tekst.
+- Szybkie sprawdzenie (`tools/selftest.py`) obejmuje dodatkowo zasoby KaTeX
+  (razem z typem MIME czcionek) i zamianę wzorów na tekst.
 
 ## [3.0.0] — 2026-08-02
 
@@ -56,8 +56,9 @@ Format: [wersja] — co nowego z punktu widzenia nauczyciela.
   Sprawdzanie można wyłączyć.
 - **FAQ** — [docs/FAQ.md](docs/FAQ.md) z odpowiedziami na pytania o karty,
   kamerę, wzory, raporty, prywatność i typowe kłopoty.
-- **Test dymny** `tools/selftest.py` — sprawdza strony, API, karty PDF, cały
-  przebieg quizu, wszystkie formaty raportu oraz kompletność tłumaczeń PL/EN.
+- **Szybkie sprawdzenie** `tools/selftest.py` — uruchamia aplikację bez kamery
+  i przechodzi przez nią jak nauczyciel: strony, API, karty PDF, cały przebieg
+  quizu, wszystkie formaty raportu i kompletność tłumaczeń PL/EN.
 
 ### Zmiany
 
