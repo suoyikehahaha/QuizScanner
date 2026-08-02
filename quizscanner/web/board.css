@@ -169,3 +169,10 @@ body.board::before {
 .rank-row.top1 .pos { background: var(--accent); color: var(--on-accent); }
 .rank-row.top2 .pos { background: #9aa0b2; color: var(--ink); }
 .rank-row.top3 .pos { background: #b9835a; color: var(--ink); }
+
+/* ---- wzory KaTeX na tablicy ---- */
+/* Wzór ma być tej samej wielkości co tekst pytania, a nie większy. */
+.qtext .katex, .opt .txt .katex, .center-screen h1 .katex { font-size: 1em; }
+.katex-display { margin: .25em 0; }
+.opt .txt .katex-display { margin: 0; }
+.tex-error { color: var(--bad); font-family: monospace; font-size: .8em; }

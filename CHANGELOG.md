@@ -2,6 +2,34 @@
 
 Format: [wersja] — co nowego z punktu widzenia nauczyciela.
 
+## [3.1.0] — 2026-08-02
+
+### Nowe
+
+- **Wzory LaTeX renderowane przez KaTeX** — wzór zamykasz w dolarach
+  (`$\frac{1}{2}$`, `$\pi r^2$`, `$$\begin{cases}…\end{cases}$$`), a tablica
+  i panel pokazują go złożonego jak w podręczniku. Podwójne dolary dają wzór
+  wyśrodkowany w osobnej linii.
+- **Sekcja LaTeX w przyborniku** — gotowe szablony: ułamek piętrowy,
+  pierwiastek stopnia n, potęga i indeks, całka z granicami, suma, granica,
+  symbol Newtona, kreska nad symbolem, wektor, układ równań, macierz.
+  Szablony działają na zaznaczeniu.
+- **Podgląd na żywo pod przybornikiem** — pokazuje edytowane właśnie pole
+  dokładnie tak, jak zobaczą je uczniowie; błąd składni widać od razu.
+- Przykładowy quiz ma teraz pytanie z ułamkami, żeby było co obejrzeć od razu
+  po instalacji.
+
+### Zmiany
+
+- KaTeX leży w repozytorium (`quizscanner/web/vendor/katex`, ok. 600 kB,
+  licencja MIT) i wchodzi do pliku `.exe` — **nic nie pobiera się z internetu**,
+  aplikacja dalej działa w pełni offline.
+- W raportach (PDF, Excel, CSV, HTML, TXT) wzory zapisywane są czytelnym
+  tekstem: `$\frac{1}{2}$` → `(1)/(2)`, `$\sqrt[3]{27}$` → `³√(27)`. Pełny
+  zapis LaTeX zostaje w eksporcie JSON.
+- Test dymny sprawdza dodatkowo zasoby KaTeX (razem z typem MIME czcionek)
+  i zamianę wzorów na tekst.
+
 ## [3.0.0] — 2026-08-02
 
 ### Nowe

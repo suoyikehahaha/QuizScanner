@@ -6,9 +6,10 @@ Jedno źródło danych (`build`) i kilka formatów wyjściowych:
     dane = build(session)
     blob, ctype, nazwa = render(dane, "pdf")
 
-Obsługiwane formaty: json, csv, html, pdf, txt.
+Obsługiwane formaty: pdf, xlsx, csv, html, json, txt.
 PDF powstaje przez Pillow (biblioteka i tak jest wymagana przez generator
-kart), więc raport nie dokłada żadnej nowej zależności.
+kart), a XLSX przez zipfile z biblioteki standardowej — raport nie dokłada
+żadnej nowej zależności. Wzory LaTeX z pytań zamienia na tekst tex_to_plain().
 """
 
 import csv
@@ -22,6 +23,91 @@ from . import VERSION
 
 LETTERS = ["A", "B", "C", "D"]
 FORMATS = ["pdf", "csv", "xlsx", "html", "json", "txt"]
+
+# --------------------------- LaTeX -> tekst ---------------------------
+# Wzory w pytaniach zapisujemy jako LaTeX w dolarach ($\frac{1}{2}$) i na
+# tablicy renderuje je KaTeX. Raport to plik do wydruku albo arkusza, więc
+# zamieniamy zapis na czytelny tekst z symbolami Unicode.
+#
+# ponytail: to konwerter przybliżony, nie parser LaTeX-a. Radzi sobie z tym,
+# co realnie pojawia się w szkolnym pytaniu; przy egzotycznej składni zostawia
+# nazwę polecenia. Gdyby raporty miały kiedyś odwzorować wzór wiernie, trzeba
+# renderować je jako obrazki — nie rozbudowywać tego o kolejne wyjątki.
+TEX_SYMBOLS = {
+    r"\cdot": "·", r"\times": "×", r"\div": "÷", r"\pm": "±", r"\mp": "∓",
+    r"\leq": "≤", r"\le": "≤", r"\geq": "≥", r"\ge": "≥", r"\neq": "≠",
+    r"\ne": "≠", r"\approx": "≈", r"\equiv": "≡", r"\propto": "∝",
+    r"\infty": "∞", r"\to": "→", r"\rightarrow": "→", r"\Rightarrow": "⇒",
+    r"\Leftrightarrow": "⇔", r"\in": "∈", r"\notin": "∉", r"\subset": "⊂",
+    r"\subseteq": "⊆", r"\cup": "∪", r"\cap": "∩", r"\emptyset": "∅",
+    r"\forall": "∀", r"\exists": "∃", r"\land": "∧", r"\lor": "∨",
+    r"\neg": "¬", r"\sum": "∑", r"\prod": "∏", r"\int": "∫", r"\oint": "∮",
+    r"\partial": "∂", r"\nabla": "∇", r"\angle": "∠", r"\perp": "⊥",
+    r"\parallel": "∥", r"\triangle": "△", r"\cong": "≅", r"\sim": "∼",
+    r"\degree": "°", r"\circ": "°", r"\ldots": "…", r"\dots": "…",
+    r"\setminus": "∖", r"\cdots": "⋯", r"\ast": "∗",
+    r"\mathbb{N}": "ℕ", r"\mathbb{Z}": "ℤ", r"\mathbb{Q}": "ℚ",
+    r"\mathbb{R}": "ℝ", r"\mathbb{C}": "ℂ",
+    r"\alpha": "α", r"\beta": "β", r"\gamma": "γ", r"\delta": "δ",
+    r"\epsilon": "ε", r"\varepsilon": "ε", r"\theta": "θ", r"\lambda": "λ",
+    r"\mu": "μ", r"\pi": "π", r"\rho": "ρ", r"\sigma": "σ", r"\tau": "τ",
+    r"\phi": "φ", r"\varphi": "φ", r"\omega": "ω", r"\Delta": "Δ",
+    r"\Sigma": "Σ", r"\Pi": "Π", r"\Omega": "Ω", r"\Theta": "Θ",
+    r"\Lambda": "Λ",
+}
+SUP = str.maketrans("0123456789+-n()", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻ⁿ⁽⁾")
+SUB = str.maketrans("0123456789+-n()", "₀₁₂₃₄₅₆₇₈₉₊₋ₙ₍₎")
+
+_BRACED = r"\{([^{}]*)\}"
+
+
+def _script(body, table, marker):
+    """Indeks górny/dolny: cyfry idą na Unicode, reszta zostaje z ^ lub _."""
+    if body and all(c in "0123456789+-n()" for c in body):
+        return body.translate(table)
+    return marker + body
+
+
+def tex_to_plain(text):
+    """Zamienia zapis $LaTeX$ na czytelny tekst (do raportów i wydruków)."""
+    text = str(text or "")
+    if "$" not in text:
+        return text
+
+    def convert(code):
+        # Nawiasy klamrowe pisane wprost (\{ \}) chowamy, żeby nie zniknęły
+        # razem z klamrami składniowymi na końcu konwersji.
+        s = code.replace(r"\{", "\u0001").replace(r"\}", "\u0002")
+        s = re.sub(r"\\begin\{[a-z]+\*?\}|\\end\{[a-z]+\*?\}", " ", s)
+        s = s.replace(r"\\", "; ").replace(r"\left", "").replace(r"\right", "")
+        s = re.sub(r"\\[,;:!\s]", " ", s)
+        s = re.sub(r"\\sqrt\[([^\]]*)\]" + _BRACED,
+                   lambda m: f"{_script(m.group(1), SUP, '')}√({m.group(2)})", s)
+        s = re.sub(r"\\sqrt" + _BRACED, lambda m: f"√({m.group(1)})", s)
+        s = re.sub(r"\\d?frac" + _BRACED + _BRACED,
+                   lambda m: f"({m.group(1)})/({m.group(2)})", s)
+        s = re.sub(r"\\binom" + _BRACED + _BRACED,
+                   lambda m: f"C({m.group(1)}, {m.group(2)})", s)
+        s = re.sub(r"\\(?:overline|bar)" + _BRACED, lambda m: m.group(1) + "\u0304", s)
+        s = re.sub(r"\\vec" + _BRACED, lambda m: m.group(1) + "\u20d7", s)
+        s = re.sub(r"\\text(?:bf|it|rm)?" + _BRACED, lambda m: m.group(1), s)
+        # Od najdłuższego polecenia: inaczej \in zjadłoby początek \int.
+        for tex in sorted(TEX_SYMBOLS, key=len, reverse=True):
+            s = s.replace(tex, TEX_SYMBOLS[tex])
+        s = re.sub(r"\^" + _BRACED, lambda m: _script(m.group(1), SUP, "^"), s)
+        s = re.sub(r"_" + _BRACED, lambda m: _script(m.group(1), SUB, "_"), s)
+        s = re.sub(r"\^(\w)", lambda m: _script(m.group(1), SUP, "^"), s)
+        s = re.sub(r"_(\w)", lambda m: _script(m.group(1), SUB, "_"), s)
+        s = re.sub(r"\\([a-zA-Z]+)", r"\1", s)      # reszta poleceń: sama nazwa
+        s = s.replace("{", "").replace("}", "")
+        s = s.replace("\u0001", "{").replace("\u0002", "}")
+        return re.sub(r"\s{2,}", " ", s).strip()
+
+    out = re.sub(r"\$\$([\s\S]+?)\$\$|(?<!\\)\$([^$\n]+?)(?<!\\)\$",
+                 lambda m: convert(m.group(1) if m.group(1) is not None else m.group(2)),
+                 text)
+    return out.replace(r"\$", "$")
+
 
 CONTENT_TYPES = {
     "json": "application/json; charset=utf-8",
@@ -56,12 +142,16 @@ def build(session):
             if a.get("answer") in dist:
                 dist[a["answer"]] += 1
         ok = sum(1 for a in answers.values() if a.get("correct"))
+        # text/correct_text zostają w oryginale (z LaTeX-em) — to źródło prawdy
+        # w eksporcie JSON; *_plain trafia tam, gdzie nie ma czym renderować.
         questions.append({
             "n": n,
             "text": h.get("question", ""),
+            "text_plain": tex_to_plain(h.get("question", "")),
             "options": h.get("options", []),
             "correct": h.get("correct"),
             "correct_text": h.get("correct_text", ""),
+            "correct_text_plain": tex_to_plain(h.get("correct_text", "")),
             "answered": len(answers),
             "correct_count": ok,
             "percent": round(100.0 * ok / len(answers), 1) if answers else 0.0,
@@ -112,6 +202,7 @@ def build(session):
             "best": students[0]["name"] if students else "",
             "hardest_n": hardest["n"] if hardest else None,
             "hardest_text": hardest["text"] if hardest else "",
+            "hardest_text_plain": hardest["text_plain"] if hardest else "",
             "hardest_percent": hardest["percent"] if hardest else None,
         },
     }
@@ -146,7 +237,7 @@ def to_csv(data):
     wr.writerow([])
     wr.writerow(["pytanie", "treść", "poprawna", "odpowiedziało", "poprawnie", "%"])
     for q in data["questions"]:
-        wr.writerow([q["n"], q["text"], q["correct"] or "",
+        wr.writerow([q["n"], q["text_plain"], q["correct"] or "",
                      q["answered"], q["correct_count"], q["percent"]])
     return buf.getvalue().encode("utf-8-sig")
 
@@ -168,7 +259,7 @@ def to_txt(data):
                    f"{st['correct']}/{s['questions']} ({st['percent']}%)")
     out += ["", "PYTANIA", "-" * 52]
     for q in data["questions"]:
-        out.append(f"{q['n']:>3}. [{q['correct'] or '-'}] {q['text']}")
+        out.append(f"{q['n']:>3}. [{q['correct'] or '-'}] {q['text_plain']}")
         out.append(f"     poprawnie {q['correct_count']}/{q['answered']} ({q['percent']}%)"
                    f"   A/B/C/D: " + "/".join(str(q["distribution"][L]) for L in LETTERS))
     return "\n".join(out).encode("utf-8")
@@ -187,8 +278,8 @@ def to_html(data):
         f"<td class=n>{st['correct']}/{s['questions']}</td>"
         f"<td class=n>{st['percent']}%</td></tr>" for st in data["students"])
     qs = "".join(
-        f"<tr><td class=p>{q['n']}</td><td>{_esc(q['text'])}"
-        f"<div class=sub>{_esc(q['correct_text'])}</div></td>"
+        f"<tr><td class=p>{q['n']}</td><td>{_esc(q['text_plain'])}"
+        f"<div class=sub>{_esc(q['correct_text_plain'])}</div></td>"
         f"<td class=n><b>{q['correct'] or '—'}</b></td>"
         f"<td class=n>{q['correct_count']}/{q['answered']}</td>"
         f"<td class=bar><i style='width:{q['percent']}%'></i><span>{q['percent']}%</span></td>"
@@ -396,7 +487,7 @@ def to_pdf(data):
         if y == MARGIN:
             header("Pytania (c.d.)", q_cols)
         text(q["n"], MARGIN, 22, True, accent)
-        text(clip(q["text"], 22, right - 300 - MARGIN), MARGIN + 60, 22)
+        text(clip(q["text_plain"], 22, right - 300 - MARGIN), MARGIN + 60, 22)
         for val, x in ((q["correct"] or "—", right - 200),
                        (f"{q['correct_count']}/{q['answered']}", right - 90),
                        (f"{q['percent']}%", right)):

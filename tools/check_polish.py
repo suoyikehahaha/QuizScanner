@@ -22,9 +22,10 @@ from polish_words import WORD_MAP, NEVER_TOUCH  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXTS = {".py", ".js", ".css", ".html", ".md", ".ps1", ".bat", ".sh", ".json"}
-# Folder tools/ zawiera słownik z formami bez ogonków — z założenia.
+# tools/ zawiera słownik z formami bez ogonków (z założenia), vendor/ to
+# cudzy kod (KaTeX) — obu nie poprawiamy.
 SKIP_DIRS = {".git", "build", "dist", "__pycache__", "karty", "media",
-             ".venv", "tools"}
+             ".venv", "tools", "vendor"}
 
 PATTERN = re.compile(
     r"\b(" + "|".join(sorted(WORD_MAP, key=len, reverse=True)) + r")\b",

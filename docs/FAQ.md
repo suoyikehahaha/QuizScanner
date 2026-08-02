@@ -179,7 +179,8 @@ sieci. Działa też na Smart TV z przeglądarką.
 
 W edytorze jest **przybornik matematyczny**: kliknij pole pytania lub
 odpowiedzi, a potem symbol. Masz działania, potęgi i indeksy, ułamki, alfabet
-grecki, zbiory i logikę, geometrię oraz analizę (∑, ∫, lim…).
+grecki, zbiory i logikę, geometrię oraz analizę (∑, ∫, lim…). Pod przybornikiem
+widzisz **podgląd na żywo** — dokładnie to, co zobaczą uczniowie na tablicy.
 
 Szablony wstawiają gotowy szkielet: zaznacz `x+1`, kliknij `√( )`, a dostaniesz
 `√(x+1)`. Przyciski `x²` i `x₂` zamieniają zaznaczony fragment na indeks górny
@@ -187,12 +188,55 @@ lub dolny.
 </details>
 
 <details>
-<summary><b>Czy to jest LaTeX?</b></summary>
+<summary><b>Czy mogę pisać w LaTeX-u?</b></summary>
 
-Nie — wzory są zwykłym tekstem Unicode (`√`, `≤`, `π`, `x²`, `H₂O`, `½`).
-Dzięki temu wyglądają tak samo w edytorze, na tablicy, w wyeksportowanym pliku
-`.quiz` i w raporcie PDF, bez żadnego dodatkowego silnika. Ułamków piętrowych
-i całek z granicami w tej formie nie zapiszesz — na to trzeba obrazka.
+Tak. Wzór zamykasz w dolarach, a renderuje go **KaTeX**:
+
+```
+Ile wynosi $\frac{1}{2} + \frac{1}{4}$ ?
+Pole koła: $\pi r^2$
+$$\begin{cases} x + y = 2 \\ x - y = 0 \end{cases}$$
+```
+
+Podwójne dolary `$$…$$` dają wzór wyśrodkowany w osobnej linii. W przyborniku
+jest sekcja **LaTeX** z gotowymi szablonami: ułamek piętrowy, pierwiastek
+stopnia n, całka z granicami, suma, granica, symbol Newtona, wektor, układ
+równań, macierz.
+</details>
+
+<details>
+<summary><b>Kiedy Unicode, a kiedy LaTeX?</b></summary>
+
+Do prostych rzeczy (`x²`, `√2`, `≤`, `π`, `H₂O`) wystarczy Unicode — jest
+lżejszy i wygląda identycznie wszędzie, także w raporcie. LaTeX bierz do tego,
+czego Unicode nie zapisze: ułamków piętrowych, całek i sum z granicami,
+macierzy, układów równań.
+</details>
+
+<details>
+<summary><b>Czy KaTeX pobiera coś z internetu?</b></summary>
+
+Nie. Cała biblioteka razem z czcionkami leży w repozytorium
+(`quizscanner/web/vendor/katex`, ok. 600 kB) i jest wbudowana w plik `.exe`.
+Aplikacja dalej działa w pełni offline.
+</details>
+
+<details>
+<summary><b>Jak wzory wyglądają w raporcie?</b></summary>
+
+Raport to samodzielny plik, który ma się otworzyć wszędzie — także bez
+QuizScannera — więc wzory zapisywane są w nim tekstem: `$\frac{1}{2}$` →
+`(1)/(2)`, `$\pi r^2$` → `π r²`, `$\sqrt[3]{27}$` → `³√(27)`. Dotyczy to
+wszystkich formatów poza **JSON**, w którym zostaje pełny zapis LaTeX
+(przydaje się, gdy chcesz przetworzyć wyniki własnym skryptem).
+</details>
+
+<details>
+<summary><b>Wzór świeci się na czerwono.</b></summary>
+
+To błąd składni LaTeX — najczęściej brakujący nawias klamrowy albo literówka
+w nazwie polecenia. Podgląd pod przybornikiem pokazuje to od razu, jeszcze
+zanim pytanie trafi na tablicę.
 </details>
 
 <details>

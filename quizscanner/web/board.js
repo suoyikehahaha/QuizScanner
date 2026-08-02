@@ -39,7 +39,7 @@ function optionTile(i, text, st) {
   const barW = showDist ? Math.round(100 * count / maxCount) : 0;
   return `<div class="opt opt-${LETTERS[i]} ${isCorrect ? "correct" : ""} ${dim ? "dim" : ""}">
     <span class="badge">${LETTERS[i]}</span>
-    <span class="txt">${esc(text)}</span>
+    <span class="txt">${tex(text)}</span>
     <span class="check">✓</span>
     ${showDist ? `<span class="count">${count}</span><span class="dist" style="width:${barW}%"></span>` : ""}
   </div>`;
@@ -59,13 +59,13 @@ function renderQuestion(st) {
     </div>
     <div class="time-bar"><i style="width:${barW}%"></i></div>
     <div class="kicker">${t("b_question_of", { n: st.index + 1, total: st.total })}</div>
-    <div class="qtext ${hasMedia ? "with-media" : ""}">${esc(q.text)}</div>
+    <div class="qtext ${hasMedia ? "with-media" : ""}">${tex(q.text)}</div>
     ${mediaBlock(q)}
     <div class="answers ${hasMedia ? "compact" : ""}">${tiles}</div>
     <div class="board-foot">
       <span class="chip">◎ ${t("b_scanned")} <b>${st.answered}</b></span>
       ${st.phase === "reveal" && q.correct != null
-        ? `<span class="chip">${t("b_correct")} <span class="badge badge-${LETTERS[q.correct]}">${LETTERS[q.correct]}</span> ${esc(q.answers[q.correct])}</span>` : ""}
+        ? `<span class="chip">${t("b_correct")} <span class="badge badge-${LETTERS[q.correct]}">${LETTERS[q.correct]}</span> ${tex(q.answers[q.correct])}</span>` : ""}
     </div>
   </div>`;
 }
@@ -82,7 +82,7 @@ function renderIdle(st) {
   }
   return `<div class="center-screen">
     <div class="kicker">${t("b_question_of", { n: st.index + 1, total: st.total })}</div>
-    <h1>${esc(st.question.text)}</h1>
+    <h1>${tex(st.question.text)}</h1>
     <div class="scanline"></div>
     <p>${t("b_prepare")}</p>
   </div>`;

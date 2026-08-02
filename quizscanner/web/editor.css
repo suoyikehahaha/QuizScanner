@@ -94,7 +94,21 @@ textarea.text { min-height: 56px; resize: vertical; }
 .mb-tools { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;
   padding-top: 10px; border-top: 1px dashed var(--line); }
 .mb-tools .mb-key { font-size: 13px; font-weight: 700; padding: 7px 12px; }
+.mb-tex { display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+  margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.mb-tex-label { font-size: 11px; font-weight: 800; color: var(--accent);
+  text-transform: uppercase; letter-spacing: .08em; margin-right: 4px; }
+.mb-tex .mb-key { border-style: dashed; }
 .mb-hint { display: block; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.mb-preview { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.mb-preview-out { min-height: 42px; padding: 10px 12px; border-radius: 9px;
+  background: var(--field); border: 1px solid var(--line); font-size: 17px;
+  overflow-x: auto; }
+
+/* KaTeX w edytorze i panelu nie może rozpychać kart */
+.katex { font-size: 1.08em; }
+.katex-display { margin: .3em 0; }
+.tex-error { color: var(--bad); font-family: monospace; font-size: .9em; }
 
 /* media w pytaniu */
 .media-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }

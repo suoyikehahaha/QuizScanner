@@ -86,6 +86,8 @@ CONTENT_TYPES = {
     ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
     ".gif": "image/gif", ".webp": "image/webp",
     ".mp4": "video/mp4", ".webm": "video/webm", ".ogg": "video/ogg",
+    # Czcionki KaTeX (web/vendor/katex/fonts).
+    ".woff2": "font/woff2", ".woff": "font/woff", ".ttf": "font/ttf",
 }
 
 # Dozwolone typy plików dodawanych do pytań.

@@ -162,7 +162,7 @@ function renderReport(r) {
     $("repBody").innerHTML = `<p class="muted">${t("r_empty")}</p>`;
   } else {
     const hardest = s.hardest_n
-      ? `<p class="muted">${t("r_hardest")}: <b>${s.hardest_n}.</b> ${esc(s.hardest_text)}
+      ? `<p class="muted">${t("r_hardest")}: <b>${s.hardest_n}.</b> ${tex(s.hardest_text)}
          — ${s.hardest_percent}%</p>` : "";
     $("repBody").innerHTML = `
       <div class="rep-cards">
@@ -269,7 +269,7 @@ function renderOpts(st) {
     const correct = q.correct === i;
     return `<div class="opt-t opt-${L} ${correct ? "correct" : ""}">
       <span class="badge">${L}</span>
-      <span class="c">${esc(q.answers[i] || "")}</span>
+      <span class="c">${tex(q.answers[i] || "")}</span>
       <span class="num">${st.distribution[L] || 0}</span>
       ${correct ? '<span class="flag">✓</span>' : ""}
     </div>`;
@@ -312,7 +312,7 @@ async function refreshState() {
   const ph = $("phase");
   ph.textContent = st.phase;
   ph.className = "phase " + (PHASE_KEY[st.phase] || "idle");
-  $("qtext").textContent = q ? q.text : t("t_load_quiz_first");
+  $("qtext").innerHTML = q ? tex(q.text) : TeX.esc(t("t_load_quiz_first"));
   $("timeLeft").textContent = st.time_left != null ? Math.ceil(st.time_left) + " s" : "—";
   $("answered").textContent = st.answered;
   const d = st.distribution;

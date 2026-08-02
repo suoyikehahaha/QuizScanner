@@ -178,3 +178,8 @@ table.students th { color: var(--muted); font-size: 11px; text-transform: upperc
 .lead li:first-child .p { background: var(--accent); color: var(--on-accent); }
 .lead li .n { flex: 1; }
 .lead li .s { font-variant-numeric: tabular-nums; color: var(--accent); }
+
+/* wzory KaTeX w panelu (podgląd pytania i odpowiedzi) */
+.qtext-t .katex, .opt-t .katex { font-size: 1em; }
+.katex-display { margin: .2em 0; }
+.tex-error { color: var(--bad); font-family: monospace; font-size: .9em; }

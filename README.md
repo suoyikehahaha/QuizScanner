@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img alt="wersja" src="https://img.shields.io/badge/wersja-3.0.0-e2603f">
+  <img alt="wersja" src="https://img.shields.io/badge/wersja-3.1.0-e2603f">
   <img alt="języki" src="https://img.shields.io/badge/j%C4%99zyk-PL%20%7C%20EN-2f9fb3">
   <img alt="motywy" src="https://img.shields.io/badge/motywy-7%20(ciemny%20domy%C5%9Blnie)-8a7bef">
   <img alt="platforma" src="https://img.shields.io/badge/platforma-Windows%20%7C%20Linux%20%7C%20macOS-2f9fb3">
@@ -54,7 +54,7 @@ wyniki na żywo, klasa widzi tablicę na rzutniku, a po lekcji masz gotowy rapor
 | 🖥️ **Tablica na rzutnik** | pytanie, timer, rozkład odpowiedzi, podium |
 | 🎨 **7 motywów** | ciemny (domyślny), jasny, ocean, las, zachód słońca, cukierkowy, wysoki kontrast |
 | 🔊 **Dźwięki tablicy** | start, odliczanie, koniec czasu, wynik, fanfara — syntezowane, bez plików |
-| 🧮 **Przybornik matematyczny** | √, π, ≤, ∑, ∫, potęgi i indeksy wprost w edytorze |
+| 🧮 **Przybornik matematyczny** | symbole Unicode (√ π ≤ ∑ ∫) i pełny **LaTeX renderowany przez KaTeX** |
 | 🖼️ **Zdjęcia i filmy w pytaniach** | JPG/PNG/GIF/WEBP, MP4/WEBM do 40 MB |
 | 📊 **Raport po grze** | PDF, Excel, CSV, HTML, JSON, TXT + automatyczny zapis |
 | ⬆️ **Automatyczna aktualizacja** | pasek z nową wersją i podmiana pliku jednym kliknięciem |
@@ -121,19 +121,37 @@ adres pokazuje panel nauczyciela.
 - **Dźwięki tablicy**, **Automatyczny raport**, **Sprawdzaj aktualizacje** —
   karta „Ustawienia aplikacji" w panelu.
 
-## 🧮 Przybornik matematyczny
+## 🧮 Wzory matematyczne
 
-Edytor ma paletę symboli podzieloną na sekcje: **podstawowe** (± × ÷ ≤ ≥ ≈),
-**potęgi i ułamki** (² ³ ⁿ √ ½ ⅓), **greka** (α β π Δ Σ), **zbiory i logika**
-(∈ ⊂ ∪ ∀ ⇒ ℝ), **geometria** (∠ ⊥ ∥ △ ≅) oraz **analiza** (∑ ∏ ∫ ∂ lim).
+Edytor daje dwie drogi — obie z jednego przybornika, z **podglądem na żywo**
+pokazującym, jak edytowane pole wygląda na tablicy.
 
-Kliknij pole pytania lub odpowiedzi, potem symbol. Szablony działają na
-zaznaczeniu — zaznacz `x+1`, kliknij `√( )`, wychodzi `√(x+1)`. Przyciski
-`x²` / `x₂` zamieniają zaznaczony fragment na indeks górny lub dolny.
+**1. Symbole Unicode** — sekcje: **podstawowe** (± × ÷ ≤ ≥ ≈), **potęgi
+i ułamki** (² ³ ⁿ √ ½ ⅓), **greka** (α β π Δ Σ), **zbiory i logika**
+(∈ ⊂ ∪ ∀ ⇒ ℝ), **geometria** (∠ ⊥ ∥ △ ≅), **analiza** (∑ ∏ ∫ ∂ lim).
+Zwykły tekst — wygląda tak samo wszędzie, także w raporcie i pliku `.quiz`.
 
-> Wzory są zwykłym tekstem Unicode, nie LaTeX-em — dzięki temu wyglądają
-> identycznie w edytorze, na tablicy, w pliku `.quiz` i w raporcie PDF, bez
-> żadnego dodatkowego silnika.
+**2. LaTeX** — wzór zamykasz w dolarach, a renderuje go **KaTeX**:
+
+```
+Ile wynosi $\frac{1}{2} + \frac{1}{4}$ ?
+Pole koła: $\pi r^2$,  granica: $\lim_{x \to 0} \frac{\sin x}{x}$
+$$\begin{cases} x + y = 2 \\ x - y = 0 \end{cases}$$
+```
+
+Gotowe szablony w przyborniku: ułamek piętrowy, pierwiastek stopnia n, całka
+z granicami, suma, granica, symbol Newtona, wektor, układ równań, macierz.
+Podwójne dolary `$$…$$` dają wzór wyśrodkowany w osobnej linii.
+
+Szablony działają na zaznaczeniu — zaznacz `x+1`, kliknij `√( )` i wychodzi
+`√(x+1)` albo `$\sqrt{x+1}$`. Przyciski `x²` / `x₂` zamieniają zaznaczony
+fragment na indeks górny lub dolny.
+
+> **KaTeX jest w repozytorium** (`quizscanner/web/vendor/katex`, ok. 600 kB) —
+> nic nie pobiera się z internetu, aplikacja dalej działa w pełni offline.
+> W raportach (PDF, Excel, CSV, TXT) wzory zapisywane są tekstem:
+> `$\frac{1}{2}$` → `(1)/(2)`, `$\pi r^2$` → `π r²`. Pełny zapis LaTeX
+> zostaje w eksporcie JSON.
 
 ## 📊 Raport po grze
 

@@ -4,8 +4,9 @@ czy najważniejsze rzeczy naprawdę działają.
 
     python tools/selftest.py
 
-Sprawdza: strony, API stanu, karty PDF, przebieg quizu (start → wynik →
-podium), automatyczny zapis raportu oraz każdy format eksportu.
+Sprawdza: strony i zasoby (w tym KaTeX), API stanu, karty PDF, przebieg quizu
+(start → wynik → podium), automatyczny zapis raportu, każdy format eksportu,
+zamianę wzorów LaTeX na tekst oraz kompletność tłumaczeń PL/EN.
 Kończy się kodem 0, gdy wszystko przeszło.
 """
 
@@ -37,6 +38,24 @@ def post(path, payload):
         headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=10) as r:
         return json.load(r)
+
+
+def check_tex():
+    """Wzory LaTeX muszą dać się zamienić na czytelny tekst — to one trafiają
+    do raportu PDF, CSV i arkusza, gdzie nie ma czym renderować."""
+    cases = {
+        r"Ile wynosi $\frac{1}{2}$ ?": "Ile wynosi (1)/(2) ?",
+        r"$\pi r^2$": "π r²",
+        r"$\sqrt[3]{27}$": "³√(27)",
+        r"$\int_0^1 x\,dx$": "∫₀¹ x dx",           # \in nie może zjeść \int
+        r"$H_2O$": "H₂O",
+        r"$\mathbb{R} \setminus \{0\}$": "ℝ ∖ {0}",
+        r"Cena 20\$": "Cena 20$",                   # dolar bez wzoru zostaje
+        "Pytanie bez matematyki": "Pytanie bez matematyki",
+    }
+    for src, expected in cases.items():
+        got = report.tex_to_plain(src)
+        assert got == expected, f"{src!r}: {got!r} != {expected!r}"
 
 
 def check_i18n():
@@ -76,6 +95,7 @@ def check_i18n():
 
 
 def main():
+    check_tex()
     check_i18n()
     httpd = server.build_server(port=PORT, no_camera=True)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
@@ -84,8 +104,16 @@ def main():
         # --- strony i zasoby ---
         for path in ("/teacher", "/board", "/editor"):
             assert b"QuizScanner" in get(path, raw=True), path
-        for path in ("/static/themes.css", "/static/sound.js", "/static/mathbar.js"):
+        for path in ("/static/themes.css", "/static/sound.js", "/static/mathbar.js",
+                     "/static/tex.js", "/static/vendor/katex/katex.min.js",
+                     "/static/vendor/katex/katex.min.css"):
             assert len(get(path, raw=True)) > 100, path
+        # Czcionki KaTeX muszą wyjść z właściwym typem, inaczej wzory na
+        # tablicy renderują się zastępczym krojem.
+        with urllib.request.urlopen(
+                BASE + "/static/vendor/katex/fonts/KaTeX_Main-Regular.woff2") as r:
+            assert r.headers["Content-Type"] == "font/woff2", r.headers["Content-Type"]
+            assert len(r.read()) > 1000
 
         # --- stan i ustawienia ---
         st = get("/api/state?full=1")
