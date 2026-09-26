@@ -11,7 +11,7 @@ a = Analysis(
     [str(base / "launcher.py")], pathex=[str(base)],
     binaries=tk_binaries,
     datas=[(str(base / "assets/logo.ico"), "assets"), (str(base / "quizscanner/web"), "web"),
-           (str(base / "data/quizzes"), "data/quizzes"), (str(base / "data/students.csv"), "data"),
+           (str(base / "data/quizzes/示例测验.json"), "data/quizzes"), (str(base / "data/students.csv"), "data"),
            ] + tk_data,
     hiddenimports=["tkinter", "_tkinter", "quizscanner.cards", "quizscanner.aruco", "quizscanner.report", "quizscanner.storage"],
     hookspath=[str(base / "tools/pyinstaller_hooks")] if runtime.exists() else [], runtime_hooks=[], excludes=[], noarchive=False,

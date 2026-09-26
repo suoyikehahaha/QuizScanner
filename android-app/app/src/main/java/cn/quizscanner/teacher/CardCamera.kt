@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleOwner
 import org.opencv.core.*
 import org.opencv.objdetect.*
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.*
 
 @androidx.annotation.OptIn(androidx.camera.camera2.interop.ExperimentalCamera2Interop::class)
@@ -29,6 +30,7 @@ class CardCamera(
     private val onDetected: (Map<Int, String>) -> Unit,
     private val onError: (String) -> Unit,
     private val onQr: ((String) -> Unit)? = null,
+    private val onOverlay: (List<CardObservation>) -> Unit = {},
 ) : SensorEventListener {
     private val worker = Executors.newSingleThreadExecutor()
     private val sensors = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -44,6 +46,7 @@ class CardCamera(
     private val counts = mutableMapOf<Int, Pair<String, Int>>()
     private val sent = mutableMapOf<Int, String>()
     private var lastFrame = 0L
+    private val overlayPending = AtomicBoolean(false)
     private val detector = ArucoDetector(Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_250), DetectorParameters().apply {
                 set_cornerRefinementMethod(Objdetect.CORNER_REFINE_SUBPIX)
                 set_errorCorrectionRate(0.35)
@@ -114,6 +117,7 @@ class CardCamera(
                 rotate(0.0, -1.0, -image.imageInfo.rotationDegrees)
             } else rotate(gx, -gy, -sensorOrientation)
             val detections = mutableMapOf<Int, String>()
+            val observations = mutableListOf<CardObservation>()
             val seen = mutableSetOf<Int>()
             for (i in 0 until ids.rows()) {
                 val id = ids.get(i, 0)[0].toInt()
@@ -129,13 +133,49 @@ class CardCamera(
                 val previous = counts[id]
                 val n = if (previous?.first == answer) previous.second + 1 else 1
                 counts[id] = answer to n
+                observations.add(CardObservation(id, answer, n >= 3,
+                    (0..3).map { corner -> marker.get(0, corner).let { CardCorner(it[0].toFloat(), it[1].toFloat()) } }))
                 if (n >= 3 && sent[id] != answer) { detections[id] = answer; sent[id] = answer }
             }
             counts.keys.retainAll(seen)
             if (!closed && detections.isNotEmpty()) onDetected(detections)
+            updateOverlay(image, observations)
         } catch (error: Exception) {
             if (!closed) onError("识别失败：${error.message}")
         } finally { gray?.release(); ids.release(); corners.forEach { it.release() }; image.close() }
+    }
+
+    private fun updateOverlay(image: ImageProxy, observations: List<CardObservation>) {
+        if (closed || !overlayPending.compareAndSet(false, true)) return
+        // Map the raw analysis buffer through the sensor into PreviewView.
+        // CameraX includes the actual preview rotation and FILL_CENTER crop;
+        // this does not alter the answer's direction calculation.
+        val bufferToSensor = android.graphics.Matrix()
+        if (!image.imageInfo.sensorToBufferTransformMatrix.invert(bufferToSensor)) {
+            overlayPending.set(false)
+            return
+        }
+        val sensorPoints = observations.map { observation ->
+            val points = observation.corners.flatMap { listOf(it.x, it.y) }.toFloatArray()
+            bufferToSensor.mapPoints(points)
+            observation to points
+        }
+        previewView.post {
+            try {
+                if (closed) return@post
+                val sensorToView = previewView.sensorToViewTransform
+                if (sensorToView == null || previewView.width == 0 || previewView.height == 0) {
+                    onOverlay(emptyList())
+                    return@post
+                }
+                onOverlay(sensorPoints.map { (observation, points) ->
+                    sensorToView.mapPoints(points)
+                    observation.copy(corners = (0..3).map { i ->
+                        CardCorner(points[i * 2] / previewView.width, points[i * 2 + 1] / previewView.height)
+                    })
+                })
+            } finally { overlayPending.set(false) }
+        }
     }
 
     private fun rotate(x: Double, y: Double, degrees: Int): Pair<Double, Double> {

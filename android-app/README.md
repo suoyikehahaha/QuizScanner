@@ -1,6 +1,6 @@
 # QuizScanner 原生安卓教师端
 
-版本 2.0.0，应用标识 cn.quizscanner.teacher。课堂、测验、更多、摄像头预览和卡片识别均为本地实现，主 Activity 为 NativeActivity；工程不再包含旧 WebView Activity。
+版本 2.0.1，应用标识 cn.quizscanner.teacher。课堂、测验、更多、摄像头预览和卡片识别均为本地实现，主 Activity 为 NativeActivity；工程不再包含旧 WebView Activity。
 
 ## 构建
 

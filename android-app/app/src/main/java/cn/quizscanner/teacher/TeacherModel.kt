@@ -73,6 +73,8 @@ class TeacherModel(app: Application): AndroidViewModel(app) {
     var screenUp by mutableStateOf(prefs.getBoolean("screen_up", false))
     var cameraError by mutableStateOf("")
     var pairCode by mutableStateOf("")
+    var recentScans by mutableStateOf(emptyList<RecentScan>())
+        private set
     private var token = ""
     private var polling: Job? = null
     private var base = prefs.getString("base", "") ?: ""
@@ -252,6 +254,10 @@ class TeacherModel(app: Application): AndroidViewModel(app) {
     fun detected(answers: Map<Int, String>, capturedAttempt: String) {
         viewModelScope.launch {
             if (ending || capturedAttempt != attempt || phase != "question" || answers.isEmpty()) return@launch
+            for ((cardId, answer) in answers) {
+                recentScans = (listOf(RecentScan(cardId, answer, capturedAttempt)) +
+                    recentScans.filter { it.attempt == capturedAttempt && it.cardId != cardId }).take(3)
+            }
             val body = JSONObject().put("session_id", state.optString("session_id")).put("class_name", state.optString("active_class"))
                 .put("attempt_id", attempt).put("event_id", UUID.randomUUID().toString())
                 .put("captured_at", System.currentTimeMillis()).put("answers", JSONObject(answers.mapKeys { it.key.toString() }))

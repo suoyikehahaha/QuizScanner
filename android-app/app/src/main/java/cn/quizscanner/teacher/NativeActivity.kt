@@ -25,6 +25,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.buildAnnotatedString
@@ -259,6 +264,7 @@ fun ScanScreen(model: TeacherModel, permission: Boolean, requestPermission: () -
     val landscape = LocalConfiguration.current.screenWidthDp > LocalConfiguration.current.screenHeightDp
     val preview = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER; implementationMode = PreviewView.ImplementationMode.COMPATIBLE } }
     val allowed = state.optJSONArray("live_students")?.objects().orEmpty().map { it.optInt("card_id", -1) }.toSet()
+    val observations = remember(model.attempt, model.cameraId, landscape) { mutableStateOf(emptyList<CardObservation>()) }
     DisposableEffect(owner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) foreground = true
@@ -270,8 +276,9 @@ fun ScanScreen(model: TeacherModel, permission: Boolean, requestPermission: () -
     DisposableEffect(model.attempt, active, permission, foreground, model.cameraId, model.screenUp, landscape) {
         val attempt = model.attempt
         val camera = if (active && permission && foreground) CardCamera(context, owner, preview, model.cameraId, model.screenUp, allowed,
-            { answers -> model.detected(answers, attempt) }, { message -> model.cameraError = message }).also { model.clearCameraError(); it.start() } else null
-        onDispose { camera?.close() }
+            { answers -> model.detected(answers, attempt) }, { message -> model.cameraError = message },
+            onOverlay = { markers -> if (model.attempt == attempt) observations.value = markers }).also { model.clearCameraError(); it.start() } else null
+        onDispose { camera?.close(); observations.value = emptyList() }
     }
     LaunchedEffect(model.phase, model.attempt) {
         if (model.phase in listOf("ended", "reveal", "podium")) drawer = "graph"
@@ -279,6 +286,7 @@ fun ScanScreen(model: TeacherModel, permission: Boolean, requestPermission: () -
     }
     Box(Modifier.fillMaxSize().background(Color(0xFF17141D))) {
         if (active && permission) AndroidView(factory = { preview }, modifier = Modifier.fillMaxSize())
+        if (active && permission) CardScanOverlay(observations, model)
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.displayCutout).padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -298,7 +306,9 @@ fun ScanScreen(model: TeacherModel, permission: Boolean, requestPermission: () -
             }
             if (!permission) Button(requestPermission, Modifier.align(Alignment.CenterHorizontally)) { Text("允许使用摄像头") }
             if (model.cameraError.isNotBlank() && active) Text(model.cameraError, color = Color.White, modifier = Modifier.background(Color(0xD924202C)).padding(12.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+            Column {
+              if (active) RecentScanFeedback(model)
+              Row(Modifier.fillMaxWidth().padding(top=8.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 FilledTonalButton({ drawer = "graph" }) { Text("图表") }
                 Button({ if (active) model.command("end") else drawer = "graph" },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE45466)),
@@ -306,6 +316,7 @@ fun ScanScreen(model: TeacherModel, permission: Boolean, requestPermission: () -
                     Text(if (active) "■" else "结果", fontSize = if (active) 30.sp else 18.sp)
                 }
                 FilledTonalButton({ drawer = "students" }) { Text("学生") }
+              }
             }
         }
         if (drawer.isNotEmpty()) ModalBottomSheet(onDismissRequest = { drawer = "" },
@@ -324,6 +335,66 @@ fun ScanScreen(model: TeacherModel, permission: Boolean, requestPermission: () -
                         Text(if (active) "结束作答" else if (state.optInt("index") + 1 >= state.optInt("total")) "结束测验" else "下一题并扫码")
                     }
                 }
+            }
+        }
+    }
+}
+
+private fun feedbackColor(receipt: ScanReceipt) = when(receipt) {
+    ScanReceipt.READING -> Color(0xFFDEE3ED)
+    ScanReceipt.RECOGNIZED -> Color(0xFFFFCD68)
+    ScanReceipt.SUBMITTED -> Color(0xFF61E7B3)
+    ScanReceipt.OFFLINE -> Color(0xFF9EC9FF)
+}
+
+@Composable
+fun CardScanOverlay(observations: State<List<CardObservation>>, model: TeacherModel) {
+    val live = model.state.optJSONArray("live_students")?.objects().orEmpty().associateBy { it.optInt("card_id", -1) }
+    val offline = model.offline
+    val density = LocalDensity.current
+    val textSize = with(density) { 16.sp.toPx() }
+    val padding = with(density) { 9.dp.toPx() }
+    Canvas(Modifier.fillMaxSize()) {
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            this.textSize = textSize; typeface = android.graphics.Typeface.DEFAULT_BOLD
+        }
+        for (marker in observations.value) {
+            if (marker.corners.size != 4) continue
+            val points = marker.corners.map { androidx.compose.ui.geometry.Offset(it.x * size.width, it.y * size.height) }
+            val student = live[marker.cardId]
+            val receipt = scanReceipt(marker.stable, marker.answer, student?.optString("answer"), student?.optBoolean("scanned") == true, offline)
+            val color = feedbackColor(receipt)
+            val path = Path().apply { moveTo(points[0].x,points[0].y);points.drop(1).forEach { lineTo(it.x,it.y) };close() }
+            drawPath(path, color, style = Stroke(width = 3 * density.density))
+            val suffix = " · ${marker.answer} · ${scanReceiptText(receipt)}"
+            val name = student?.optString("name").orEmpty().ifBlank { "卡片 ${marker.cardId}" }
+            val fittedName = android.text.TextUtils.ellipsize(name,android.text.TextPaint(paint),
+                maxOf(1f,size.width-padding*4-paint.measureText(suffix)),android.text.TextUtils.TruncateAt.END)
+            val label = "$fittedName$suffix"
+            val labelWidth = minOf(paint.measureText(label) + padding * 2, size.width - padding * 2)
+            val labelHeight = textSize + padding * 2
+            val x = points.minOf { it.x }.coerceIn(padding, maxOf(padding, size.width-labelWidth-padding))
+            val y = (points.minOf { it.y } - labelHeight - padding).coerceIn(padding, maxOf(padding, size.height-labelHeight-padding))
+            val rect = androidx.compose.ui.geometry.Rect(x,y,x+labelWidth,y+labelHeight)
+            drawRoundRect(Color(0xEB171D25), rect.topLeft,rect.size, cornerRadius = androidx.compose.ui.geometry.CornerRadius(padding))
+            paint.color = color.toArgb()
+            drawContext.canvas.nativeCanvas.drawText(label,x+padding,y+padding-paint.fontMetrics.ascent,paint)
+        }
+    }
+}
+
+@Composable
+fun RecentScanFeedback(model: TeacherModel) {
+    val recent = model.recentScans.filter { it.attempt == model.attempt }
+    val live = model.state.optJSONArray("live_students")?.objects().orEmpty().associateBy { it.optInt("card_id",-1) }
+    if (recent.isEmpty()) return
+    Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        recent.take(2).forEach { scan ->
+            val student = live[scan.cardId]
+            val receipt = scanReceipt(true,scan.answer,student?.optString("answer"),student?.optBoolean("scanned")==true,model.offline)
+            Surface(color=Color(0xD9171D25), shape=RoundedCornerShape(14.dp)) {
+                Text("${student?.optString("name").orEmpty().ifBlank { "卡片 ${scan.cardId}" }} · ${scan.answer} · ${scanReceiptText(receipt)}",
+                    color=feedbackColor(receipt),fontSize=16.sp,fontWeight=FontWeight.Bold,modifier=Modifier.padding(horizontal=12.dp,vertical=7.dp),maxLines=1,overflow=TextOverflow.Ellipsis)
             }
         }
     }

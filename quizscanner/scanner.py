@@ -123,7 +123,7 @@ def draw_detection(frame, mid, ans, corners, name=None, batch=None):
               bold=True, outline=(20, 20, 20))
 
     # Etykieta ID / imię nad markerem.
-    label = f"#{mid}" + (f" {name}" if name else "")
+    label = (name or f"卡片 {mid}") + f" · {ans}"
     top = pts[corners[:, 1].argmin()]
     batch.add(label, (int(top[0]) - 10, int(top[1]) - 30), size=20,
               color=color, bold=True, outline=(255, 255, 255))
