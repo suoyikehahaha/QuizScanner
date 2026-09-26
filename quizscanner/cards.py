@@ -34,13 +34,14 @@ from .i18n import t
 # systemowych; kolejność: Windows, Linux, macOS.
 _FONT_CANDIDATES = {
     False: [  # zwykła
-        r"C:\Windows\Fonts\segoeui.ttf", r"C:\Windows\Fonts\arial.ttf",
+        r"C:\Windows\Fonts\msyh.ttc", r"C:\Windows\Fonts\segoeui.ttf", r"C:\Windows\Fonts\arial.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
         "/Library/Fonts/Arial.ttf", "/System/Library/Fonts/Helvetica.ttc",
     ],
     True: [   # pogrubiona
+        r"C:\Windows\Fonts\msyhbd.ttc", r"C:\Windows\Fonts\msyh.ttc",
         r"C:\Windows\Fonts\segoeuib.ttf", r"C:\Windows\Fonts\arialbd.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
@@ -119,7 +120,8 @@ def paste_center(dst, patch, cx, cy):
     dst[y0c:y1c, x0c:x1c] = patch[y0c - y0:y1c - y0, x0c - x0:x1c - x0]
 
 
-def make_card(marker_id, name, dictionary, size_px, marker_px, lang="pl"):
+def make_card(marker_id, name, dictionary, size_px, marker_px, lang="zh",
+              student_no=None, class_name=None):
     """Buduje pojedynczą kartę (obraz BGR)."""
     W, H = size_px
     card = np.full((H, W, 3), 255, np.uint8)
@@ -146,8 +148,10 @@ def make_card(marker_id, name, dictionary, size_px, marker_px, lang="pl"):
         tile = rotate90(tile, ang)
         paste_center(card, tile, px, py)
 
-    # Nagłówek: ID + imię ucznia.
-    header = f"#{marker_id}"
+    # 学号是教师和学生使用的身份标识；ArUco 编号只作为班级内部识别码。
+    header = f"学号 {student_no}" if student_no not in (None, "") else f"#{marker_id}"
+    if class_name and class_name != "未分班":
+        header = f"{class_name}  {header}"
     if name:
         header += f"   {name}"
     card = draw_text(card, header, (30, 26), int(W * 0.048), bold=True)

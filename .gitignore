@@ -4,13 +4,13 @@ __pycache__/
 .venv/
 
 # Dane tworzone w trakcie działania (folder danych aplikacji).
-# Wersjonujemy tylko dane startowe: data/quizzes/przyklad.json i data/students.csv
+# Wersjonujemy tylko dane startowe: data/quizzes/示例测验.json i data/students.csv
 data/roster.json
 data/settings.json
 data/media/
 data/raporty/
 data/quizzes/*
-!data/quizzes/przyklad.json
+!data/quizzes/示例测验.json
 wyniki_*.csv
 
 # Wygenerowane karty do druku (odtwarzalne przez quizscanner/cards.py)
@@ -24,3 +24,34 @@ quizscanner_update.bat
 
 # Skrypt startowy generowany przez scripts/install.sh (Linux/macOS)
 start.sh
+
+# Local toolchains, signing keys and classroom records
+.build-venv/
+.python*/
+.uv-cache/
+.msi*/
+.py312*/
+.tcl*/
+android-toolchain/
+work/
+tcltest/
+android-app/.gradle/
+android-app/**/build/
+android-app/signing/
+data/classroom.json
+data/sessions/
+
+
+.python-*.exe
+.python-*.log
+.python-*.cab
+!QuizScanner.spec
+
+# Never publish credentials, signing material or local deployment settings
+.env
+.env.*
+*.keystore
+*.jks
+*.p12
+*.pem
+android-app/local.properties

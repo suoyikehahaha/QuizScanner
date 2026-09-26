@@ -39,8 +39,17 @@ class CameraScanner(threading.Thread):
         self.engine = QuizScanEngine(stable_frames=stable_frames)
         self._jpeg = None
         self._lock = threading.Lock()
+        self._jpeg_condition = threading.Condition(self._lock)
+        self._jpeg_sequence = 0
+        self._phone_lock = threading.Lock()
+        self._phone_condition = threading.Condition(self._phone_lock)
+        self._phone_frame = None
+        self._phone_display_rotation = 0
+        self._phone_frame_at = 0.0
+        self._phone_frame_sequence = 0
         self._running = True
         self._last_phase = None
+        self._last_question_index = None
         self.camera_ok = False
         self.live_count = 0
         self.rejected = 0             # ile wykryć odrzucono jako nie-karty
@@ -67,25 +76,98 @@ class CameraScanner(threading.Thread):
             pass
         return cap
 
+    def accepts_phone_frames(self):
+        """Return whether this scanner is currently configured for the APK camera."""
+        return str(self.camera).strip().casefold() == "android"
+
+    def submit_phone_jpeg(self, encoded, image_rotation=0, display_rotation=0):
+        """Decode, orient, and retain the newest frame from the Android app."""
+        if not self.accepts_phone_frames() or not encoded:
+            return False
+        frame = cv2.imdecode(np.frombuffer(encoded, dtype=np.uint8), cv2.IMREAD_COLOR)
+        if frame is None:
+            return False
+        image_rotation = int(image_rotation) % 360
+        if image_rotation == 90:
+            frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+        elif image_rotation == 180:
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
+        elif image_rotation == 270:
+            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        display_rotation = int(display_rotation) % 360
+        height, width = frame.shape[:2]
+        max_width, max_height = (720, 1280) if height > width else (1280, 720)
+        scale = min(1.0, max_width / max(1, width), max_height / max(1, height))
+        if scale < 1.0:
+            frame = cv2.resize(frame, (int(width * scale), int(height * scale)),
+                               interpolation=cv2.INTER_AREA)
+        with self._phone_condition:
+            self._phone_frame = frame
+            self._phone_display_rotation = display_rotation
+            self._phone_frame_at = time.monotonic()
+            self._phone_frame_sequence += 1
+            self._phone_condition.notify_all()
+        return True
+
+    def _next_phone_frame(self, last_sequence, timeout=0.25):
+        """Wait for a new phone frame; never redetect a stale image in a tight loop."""
+        with self._phone_condition:
+            if self._phone_frame_sequence <= last_sequence and self._running:
+                self._phone_condition.wait_for(
+                    lambda: self._phone_frame_sequence > last_sequence or not self._running,
+                    timeout=timeout,
+                )
+            sequence = self._phone_frame_sequence
+            if sequence > last_sequence and self._phone_frame is not None:
+                return self._phone_frame, sequence, False, self._phone_display_rotation
+            stale = (self._phone_frame is None
+                     or time.monotonic() - self._phone_frame_at > 2.0)
+            return None, last_sequence, stale, self._phone_display_rotation
+
     def run(self):
-        cap = self._open()
-        if not cap.isOpened():
+        phone_source = self.accepts_phone_frames()
+        phone_sequence = 0
+        cap = None if phone_source else self._open()
+        if phone_source:
+            self._store(_placeholder("等待手机摄像头画面"))
+        if cap is not None and not cap.isOpened():
             self._store(_placeholder(f"Brak obrazu ze źródła: {self.camera}"))
 
         while self._running:
-            ok, frame = cap.read()
+            if phone_source:
+                frame, phone_sequence, stale, phone_display_rotation = self._next_phone_frame(phone_sequence)
+                ok = frame is not None
+                if not ok:
+                    if stale and self.camera_ok:
+                        self.camera_ok = False
+                        self.live_count = 0
+                        self._store(_placeholder("手机摄像头连接已中断"))
+                    continue
+            else:
+                ok, frame = cap.read()
+                phone_display_rotation = 0
             if not ok:
                 self.camera_ok = False
-                self._store(_placeholder("Brak sygnału z kamery"))
+                self.live_count = 0
+                message = "Oczekiwanie na kamerę telefonu" if phone_source else "Brak sygnału z kamery"
+                self._store(_placeholder(message))
                 time.sleep(0.1)
                 continue
             self.camera_ok = True  # potwierdzenie po pierwszej udanej klatce
 
             phase = self.session.phase
-            # Reset silnika na starcie każdego nowego pytania.
-            if phase == PHASE_QUESTION and self._last_phase != PHASE_QUESTION:
+            question_index = getattr(self.session, "attempt_id", None)
+            new_question = (phase == PHASE_QUESTION
+                            and (self._last_phase != PHASE_QUESTION
+                                 or question_index != self._last_question_index))
+            # Android rotates each uploaded frame into the current screen
+            # orientation before sending it. Read the edge at the top of that
+            # visible frame, regardless of whether the phone is portrait or
+            # landscape; a question-start rotation anchor can invert that edge.
+            if new_question:
                 self.engine.reset()
             self._last_phase = phase
+            self._last_question_index = question_index
 
             # WAŻNE: detekcja zawsze na ORYGINALNEJ klatce. Markery ArUco nie są
             # symetryczne -- w odbiciu lustrzanym ich wzór nie pasuje do słownika
@@ -93,18 +175,24 @@ class CameraScanner(threading.Thread):
             # wygodzie patrzenia i jest nakładane dopiero na podgląd.
             # Filtr ID: gdy włączone, akceptujemy tylko numery z listy uczniów.
             roster = self.session.roster
-            self.engine.allowed_ids = (set(roster) if (self.only_known and roster)
+            self.engine.allowed_ids = (set(roster) if self.only_known
                                        else None)
 
-            detections = self.engine.process(frame)
+            if phone_source:
+                phone_up_vector = (0.0, -1.0)
+            else:
+                phone_up_vector = None
+            detections = self.engine.process(frame, up_vector=phone_up_vector)
             self.live_count = len(detections)
 
-            if phase == PHASE_QUESTION:
-                self.session.record_answers(self.engine.snapshot())
+            if phase == PHASE_QUESTION and self.session.input_source != "native":
+                self.session.record_answers(self.engine.snapshot(), attempt_id=question_index)
 
             # Podgląd: opcjonalne lustro + przeliczenie współrzędnych rogów,
             # żeby ramki trafiały w karty, a podpisy pozostały czytelne.
-            if self.mirror:
+            # 手机后置摄像头预览必须保持正向；镜像只用于电脑本机摄像头的自拍式预览。
+            mirror_preview = self.mirror and not phone_source
+            if mirror_preview:
                 view = cv2.flip(frame, 1)
                 w = view.shape[1]
                 detections = [(mid, ans, self._mirror_corners(corners, w))
@@ -117,13 +205,19 @@ class CameraScanner(threading.Thread):
             names = self.session.roster
             batch = TextBatch()
             for mid, ans, corners in detections:
-                draw_detection(view, mid, ans, corners, names.get(mid), batch=batch)
+                student = names.get(mid) or {}
+                label = " ".join(part for part in (
+                    str(student.get("student_no", "")),
+                    str(student.get("name", "")),
+                ) if part)
+                draw_detection(view, mid, ans, corners, label, batch=batch)
 
             self._banner(view, phase, batch)
             batch.flush(view)
             self._store(view)
 
-        cap.release()
+        if cap is not None:
+            cap.release()
 
     @staticmethod
     def _mirror_corners(corners, width):
@@ -142,14 +236,33 @@ class CameraScanner(threading.Thread):
                   (12, 8), size=22, color=color)
 
     def _store(self, frame):
-        ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 72])
+        quality = 62 if self.accepts_phone_frames() else 72
+        ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, quality])
         if ok:
-            with self._lock:
+            with self._jpeg_condition:
                 self._jpeg = buf.tobytes()
+                self._jpeg_sequence += 1
+                self._jpeg_condition.notify_all()
 
     def get_jpeg(self):
         with self._lock:
             return self._jpeg
 
+    def get_jpeg_after(self, sequence, timeout=0.5):
+        """Block until a newer preview frame exists instead of streaming duplicates."""
+        with self._jpeg_condition:
+            if self._jpeg_sequence <= sequence and self._running:
+                self._jpeg_condition.wait_for(
+                    lambda: self._jpeg_sequence > sequence or not self._running,
+                    timeout=timeout,
+                )
+            if self._jpeg_sequence > sequence:
+                return self._jpeg_sequence, self._jpeg
+            return self._jpeg_sequence, None
+
     def stop(self):
         self._running = False
+        with self._phone_condition:
+            self._phone_condition.notify_all()
+        with self._jpeg_condition:
+            self._jpeg_condition.notify_all()

@@ -1,0 +1,49 @@
+{
+  "title": "示例测验",
+  "settings": {
+    "default_time": 20,
+    "default_points": 1000,
+    "shuffle_questions": false,
+    "shuffle_answers": false,
+    "show_distribution": true,
+    "auto_reveal_s": 6,
+    "auto_gap_s": 3
+  },
+  "questions": [
+    {
+      "text": "中国的首都是哪座城市？",
+      "answers": ["上海", "北京", "广州", "成都"],
+      "correct": 1,
+      "time": 20,
+      "points": 1000
+    },
+    {
+      "text": "Ile wynosi 7 × 8?",
+      "answers": ["54", "56", "48", "64"],
+      "correct": 1,
+      "time": 15,
+      "points": 1000
+    },
+    {
+      "text": "哪颗行星离太阳最近？",
+      "answers": ["金星", "火星", "水星", "地球"],
+      "correct": 2,
+      "time": 20,
+      "points": 1000
+    },
+    {
+      "text": "《红楼梦》的作者是谁？",
+      "answers": ["蒲松龄", "曹雪芹", "吴承恩", "施耐庵"],
+      "correct": 1,
+      "time": 25,
+      "points": 1000
+    },
+    {
+      "text": "Ile wynosi $\\frac{1}{2} + \\frac{1}{4}$ ?",
+      "answers": ["$\\frac{1}{6}$", "$\\frac{3}{4}$", "$\\frac{2}{6}$", "$\\frac{1}{8}$"],
+      "correct": 1,
+      "time": 25,
+      "points": 1000
+    }
+  ]
+}

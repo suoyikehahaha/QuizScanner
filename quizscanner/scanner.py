@@ -57,7 +57,7 @@ class QuizScanEngine:
         self._history = {}   # id -> deque ostatnich odczytów
         self.stable = {}     # id -> potwierdzona odpowiedź
 
-    def process(self, frame_bgr):
+    def process(self, frame_bgr, up_vector=None):
         """Przetwarza jedna klatkę. Zwraca listę (id, odpowiedź, rogi).
 
         Odrzuca wykrycia, które nie wyglądają na wydrukowana kartę:
@@ -73,7 +73,7 @@ class QuizScanEngine:
                     continue
                 if self.check_contrast and not marker_is_black_and_white(gray, c):
                     continue
-                ans = answer_from_corners(c)
+                ans = answer_from_corners(c, up_vector=up_vector)
                 detections.append((mid, ans, c.reshape(4, 2)))
                 self._update(mid, ans)
         return detections

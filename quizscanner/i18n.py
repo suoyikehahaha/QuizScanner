@@ -2,10 +2,10 @@
 Teksty aplikacji po stronie Pythona (karty do druku, eksport wyników).
 
 Interfejs webowy ma własny słownik w web/i18n.js -- tutaj są tylko napisy,
-które powstają w Pythonie. Domyślny język: polski.
+które powstają w Pythonie. Domyślny język: uproszczony chiński.
 """
 
-DEFAULT_LANG = "pl"
+DEFAULT_LANG = "zh"
 
 STRINGS = {
     "pl": {
@@ -30,10 +30,21 @@ STRINGS = {
         "results_question": "question",
         "results_correct": "correct",
     },
+    "zh": {
+        "card_hint": "将所选选项转到朝上位置并举起答题卡",
+        "card_student": "学生",
+        "results_place": "名次",
+        "results_id": "编号",
+        "results_name": "姓名",
+        "results_points": "得分",
+        "results_answer": "答案",
+        "results_question": "题目",
+        "results_correct": "正确答案",
+    },
 }
 
 
 def t(key, lang=DEFAULT_LANG):
-    """Zwraca napis w wybranym języku (z awaryjnym powrotem do polskiego)."""
+    """Returns a localized Python-generated string, falling back to Chinese."""
     table = STRINGS.get(lang) or STRINGS[DEFAULT_LANG]
     return table.get(key) or STRINGS[DEFAULT_LANG].get(key, key)

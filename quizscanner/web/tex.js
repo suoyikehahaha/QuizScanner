@@ -20,7 +20,7 @@ const TeX = (() => {
 
   // Fragment poza wzorem: escapujemy i zwalniamy \$ do zwykłego dolara.
   function plain(s) {
-    return esc(s).replace(/\\\$/g, "$");
+    return esc(s).replace(/\\\$/g, "$").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/==([^=]+)==/g, "<mark>$1</mark>").replace(/\n/g, "<br>");
   }
 
   function one(code, display) {

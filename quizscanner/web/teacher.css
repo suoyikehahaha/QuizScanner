@@ -2,7 +2,8 @@ body.teacher { background: var(--paper); }
 
 .topbar {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 18px; background: var(--ink); color: var(--ink-text);
+  padding: 14px 20px; background: var(--card); color: var(--text);
+  border-bottom: 1px solid var(--line); box-shadow: 0 2px 8px rgba(0,0,0,.08);
   position: sticky; top: 0; z-index: 5; flex-wrap: wrap;
 }
 .topbar .brand {
@@ -12,25 +13,30 @@ body.teacher { background: var(--paper); }
 .topbar .brand .dot { width: 12px; height: 12px; border-radius: 50%;
   background: var(--accent); box-shadow: 0 0 0 4px rgba(226,96,63,.25); }
 .topbar select {
-  font: inherit; padding: 8px 10px; border-radius: 8px;
-  border: 1px solid var(--ink-line); background: var(--ink-2); color: var(--ink-text);
+  font: inherit; min-height: 42px; padding: 8px 13px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--field); color: var(--text);
 }
+.class-select-wrap { display: inline-flex; align-items: center; gap: 7px; color: var(--ink-muted); font-size: 12px; font-weight: 800; }
+.class-select-wrap select { color: var(--ink-text); font-weight: 600; }
 .topbar .spacer { flex: 1; }
 .lan-url {
   font-size: 13px; color: var(--ink-muted);
   background: var(--ink-2); padding: 7px 12px; border-radius: 8px;
+  line-height: 1.5;
 }
 .lan-url b { color: var(--ink-text); }
+.lan-url a { color: inherit; text-decoration: none; }
+.lan-url a:hover { text-decoration: underline; }
 
 .layout {
   display: grid; grid-template-columns: minmax(360px, 1.05fr) 1fr;
-  gap: 16px; padding: 18px; align-items: start;
+  gap: 18px; padding: 20px; align-items: start;
 }
 @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
 
 .card {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: 14px; padding: 16px;
+  border-radius: 20px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
 }
 .card h3 { margin: 0 0 12px; font-size: 12px; color: var(--muted);
   text-transform: uppercase; letter-spacing: .1em; font-weight: 800; }
@@ -43,7 +49,7 @@ body.teacher { background: var(--paper); }
 
 /* przełącznik punktów za czas */
 .switch-row { display: flex; align-items: center; gap: 12px; margin-top: 14px;
-  padding-top: 14px; border-top: 1px dashed var(--line); }
+  padding-top: 14px; border-top: 1px solid var(--line); }
 .switch-row .lbl { font-weight: 700; font-size: 14px; }
 .switch-row .sub { font-size: 12px; color: var(--muted); }
 .switch { position: relative; width: 46px; height: 26px; flex: 0 0 auto; }

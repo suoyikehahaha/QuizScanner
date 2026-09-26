@@ -1,100 +1,29 @@
-# Zmiany
+# 更新记录
 
-Format: [wersja] — co nowego z punktu widzenia nauczyciela.
+## [3.2.0] - 2026-09-26
 
-## [3.1.0] — 2026-08-02
+原生安卓教师端版本为 **2.0.0**。
 
-### Nowe
+### 修复
 
-- **Wzory LaTeX renderowane przez KaTeX** — wzór zamykasz w dolarach
-  (`$\frac{1}{2}$`, `$\pi r^2$`, `$$\begin{cases}…\end{cases}$$`), a tablica
-  i panel pokazują go złożonego jak w podręczniku. Podwójne dolary dają wzór
-  wyśrodkowany w osobnej linii.
-- **Sekcja LaTeX w przyborniku** — gotowe szablony: ułamek piętrowy,
-  pierwiastek stopnia n, potęga i indeks, całka z granicami, suma, granica,
-  symbol Newtona, kreska nad symbolem, wektor, układ równań, macierz.
-  Szablony działają na zaznaczeniu.
-- **Podgląd na żywo pod przybornikiem** — pokazuje edytowane właśnie pole
-  dokładnie tak, jak zobaczą je uczniowie; błąd składni widać od razu.
-- Przykładowy quiz ma teraz pytanie z ułamkami, żeby było co obejrzeć od razu
-  po instalacji.
+- 修复手机网页初始化中断、电脑网卡地址候选误含网关、空班接收名单外卡片。
+- 同题重新作答替换旧分数，跨班题目记录分别统计，报告保留未扫码学生。
+- 增加命令去重、过期答案拒收、统一切题与课堂自动保存恢复。
 
-### Zmiany
+### 新增
 
-- KaTeX leży w repozytorium (`quizscanner/web/vendor/katex`, ok. 600 kB,
-  licencja MIT) i wchodzi do pliku `.exe` — **nic nie pobiera się z internetu**,
-  aplikacja dalej działa w pełni offline.
-- W raportach (PDF, Excel, CSV, HTML, TXT) wzory zapisywane są czytelnym
-  tekstem: `$\frac{1}{2}$` → `(1)/(2)`, `$\sqrt[3]{27}$` → `³√(27)`. Pełny
-  zapis LaTeX zostaje w eksporcie JSON.
-- Szybkie sprawdzenie (`tools/selftest.py`) obejmuje dodatkowo zasoby KaTeX
-  (razem z typem MIME czcionek) i zamianę wzorów na tekst.
+- Compose Material 3 Expressive 原生安卓课堂、测验与更多页面。
+- CameraX 本地预览、ArUco 本地识别、方向传感器补偿与后置镜头选择。
+- 手机扫一扫、电脑连接二维码和配对令牌。
+- 结束作答后关闭摄像头、显示选项人数与姓名；切题后自动打开扫码。
+- 手机缓存、离线课堂、独立场次补传。
+- 语文 DOCX 材料与题干分离、阅读材料独立投影、重点标记和真实大屏预览。
+- 班级与课堂场次报告筛选，查看每题各选项对应学生与未作答名单。
 
-## [3.0.0] — 2026-08-02
+### 发布说明
 
-### Nowe
+- 保留原作者 Piotr Kajor 的 MIT 许可证和版权声明，以 Fork 形式保留上游历史。
+- 本衍生版本的更新渠道指向 suoyikehahaha/QuizScanner；默认关闭自动更新。
+- 首个原生安卓公开版本，真机摄像头、横竖屏判读及实际网络仍待验收。
 
-- **Przybornik matematyczny w edytorze** — paleta symboli w sześciu sekcjach
-  (podstawowe, potęgi i ułamki, greka, zbiory i logika, geometria, analiza),
-  szablony działające na zaznaczeniu (`√( )`, przedział, układ) oraz zamiana
-  zaznaczonego fragmentu na indeks górny/dolny. Wzory to tekst Unicode, więc
-  wyglądają tak samo w edytorze, na tablicy i w raporcie PDF.
-- **Motyw ciemny jako domyślny + 6 kolejnych**: jasny, ocean, las, zachód
-  słońca, cukierkowy i wysoki kontrast. Zmiana z panelu działa od razu również
-  na tablicy — także gdy stoi na innym komputerze.
-- **Dźwięki tablicy** — start pytania, odliczanie ostatnich pięciu sekund,
-  koniec czasu, wynik i fanfara na podium. Generowane w przeglądarce (WebAudio),
-  bez plików audio. Przełącznik i suwak głośności w panelu.
-- **Raport po grze** — nowy przycisk **„📊 Raport"**: ranking, skuteczność
-  każdego ucznia, odpowiedzi na każde pytanie, rozkład A/B/C/D i wskazanie
-  najtrudniejszego pytania. Pobieranie w **PDF, Excelu (XLSX), CSV, HTML,
-  JSON i TXT**.
-- **Automatyczny zapis raportu** — po ostatnim pytaniu komplet HTML + CSV + JSON
-  trafia sam do `data/raporty/`.
-- **Automatyczna aktualizacja** — pasek z informacją o nowym wydaniu i pobranie
-  jednym kliknięciem; w wersji `.exe` plik podmienia się przy zamykaniu programu.
-  Sprawdzanie można wyłączyć.
-- **FAQ** — [docs/FAQ.md](docs/FAQ.md) z odpowiedziami na pytania o karty,
-  kamerę, wzory, raporty, prywatność i typowe kłopoty.
-- **Szybkie sprawdzenie** `tools/selftest.py` — uruchamia aplikację bez kamery
-  i przechodzi przez nią jak nauczyciel: strony, API, karty PDF, cały przebieg
-  quizu, wszystkie formaty raportu i kompletność tłumaczeń PL/EN.
-
-### Zmiany
-
-- **Nowa struktura katalogów**: kod w pakiecie `quizscanner/`, dane użytkownika
-  w `data/`, dokumentacja w `docs/`, skrypty w `scripts/`. Serwer uruchamia się
-  teraz przez `python -m quizscanner` (dawniej `python app.py`).
-- Dane nauczyciela (quizy, media, lista uczniów, raporty, ustawienia) siedzą
-  w jednym folderze `data/` obok programu — łatwiej je skopiować i zarchiwizować.
-- Eksport wyników przeniesiony ze skromnego `wyniki_<data>.csv` do pełnego
-  raportu (stary przycisk „⬇ Eksport wyników" zastąpił „📊 Raport").
-- Kontrola polskich znaków obsługuje wyjątki w linii (`polish-ok`), dzięki czemu
-  nazwy funkcji trygonometrycznych nie są zgłaszane jako literówki.
-- Numer wersji do budowania `.exe` czytany jest z `quizscanner/__init__.py`,
-  więc nie da się wydać pliku z nieaktualnym numerem.
-
-## [2.0.1]
-
-- Naprawa narzędzia kontroli polskich znaków, pełne diakrytyki w repozytorium.
-
-## [2.0.0]
-
-- Języki PL/EN, tryb automatyczny, zdjęcia i filmy w pytaniach, telefon jako kamera.
-
-## [1.3.0]
-
-- Naprawa: skaner nie wykrywał większości kart (odbicie lustrzane).
-
-## [1.2.0]
-
-- Logo aplikacji, dopracowana strona repozytorium, numer wersji w nazwie `.exe`.
-
-## [1.1.0]
-
-- Pobieranie kart do druku (PDF) z poziomu aplikacji.
-
-## [1.0.0]
-
-- Pierwsze wydanie: system quizowy z odczytem kart ArUco z kamery,
-  jednoplikowy `QuizScanner.exe`.
+上游更新记录保留于 [UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md)。

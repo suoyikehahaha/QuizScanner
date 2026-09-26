@@ -1,293 +1,83 @@
-<p align="center">
-  <img src="assets/logo.svg" width="130" alt="QuizScanner">
-</p>
+# QuizScanner 简体中文版
 
-<h1 align="center">QuizScanner</h1>
+电脑端 **3.2.0** · 原生安卓教师端 **2.0.0**
 
-<p align="center">
-  <b>Darmowy system quizowy z odczytem odpowiedzi z kamery.</b><br>
-  Uczniowie podnoszą wydrukowane karty z markerami ArUco, a kamera odczytuje
-  całą klasę w jednym kadrze — otwarta alternatywa dla Plickers.<br>
-  <sub>Bez kont, bez limitów, bez chmury. Zero telefonów po stronie uczniów.</sub>
-</p>
+学生使用纸质 A/B/C/D 答题卡，教师用安卓手机扫描，电脑浏览器实时展示题目和所选班级的作答情况。学生无需使用手机。
 
-<p align="center">
-  <img alt="wersja" src="https://img.shields.io/badge/wersja-3.1.0-e2603f">
-  <img alt="języki" src="https://img.shields.io/badge/j%C4%99zyk-PL%20%7C%20EN-2f9fb3">
-  <img alt="motywy" src="https://img.shields.io/badge/motywy-7%20(ciemny%20domy%C5%9Blnie)-8a7bef">
-  <img alt="platforma" src="https://img.shields.io/badge/platforma-Windows%20%7C%20Linux%20%7C%20macOS-2f9fb3">
-  <img alt="python" src="https://img.shields.io/badge/Python-3.10%2B-4faa6a">
-  <img alt="licencja" src="https://img.shields.io/badge/licencja-MIT-8a7bef">
-  <img alt="serwer" src="https://img.shields.io/badge/serwer-czysty%20stdlib%20bez%20Flask-e8a13c">
-</p>
+> **原作者为 Piotr Kajor（[PiotrKajor](https://github.com/PiotrKajor)）。本仓库是 [PiotrKajor/QuizScanner](https://github.com/PiotrKajor/QuizScanner) 的 Fork，由 [suoyikehahaha](https://github.com/suoyikehahaha) 维护简体中文与原生安卓扩展。原项目的 MIT 许可证及版权声明完整保留。** 详见 [作者与项目来源](NOTICE.md)。
 
-<p align="center">
-  <a href="#-instalacja"><b>Instalacja</b></a> ·
-  <a href="docs/INSTALACJA.md">Instrukcja krok po kroku</a> ·
-  <a href="docs/FAQ.md"><b>FAQ</b></a> ·
-  <a href="CHANGELOG.md">Zmiany</a> ·
-  <a href="https://github.com/PiotrKajor/QuizScanner/releases">Pobierz .exe</a>
-</p>
+## 下载
 
----
+最新发行见 **[Releases](https://github.com/suoyikehahaha/QuizScanner/releases/latest)**。
 
-## 🎯 W trzech zdaniach
-
-Drukujesz jedną kartę na ucznia. Na pytanie uczeń obraca kartę wybraną literą
-do góry, a kamera w jednym kadrze odczytuje odpowiedzi całej klasy. Ty widzisz
-wyniki na żywo, klasa widzi tablicę na rzutniku, a po lekcji masz gotowy raport.
-
-```
-   ┌──────────┐        ┌──────────────┐        ┌───────────────────────┐
-   │  KARTY   │  ───▶  │    KAMERA    │  ───▶  │  PANEL · TABLICA      │
-   │ ArUco A4 │        │  jeden kadr  │        │  wyniki · raport      │
-   └──────────┘        └──────────────┘        └───────────────────────┘
-```
-
-## ✨ Funkcje
-
-| | |
+| 文件 | 用途 |
 |---|---|
-| 📷 **Odczyt z kamery** | jeden kadr wykrywa całą klasę naraz (markery ArUco) |
-| 📱 **Telefon zamiast kamery** | darmowa aplikacja streamująca: IP Webcam, DroidCam, Iriun |
-| ▶️ **Tryb automatyczny** | quiz sam odsłania wyniki i przechodzi dalej, bez klikania |
-| 🖥️ **Tablica na rzutnik** | pytanie, timer, rozkład odpowiedzi, podium |
-| 🎨 **7 motywów** | ciemny (domyślny), jasny, ocean, las, zachód słońca, cukierkowy, wysoki kontrast |
-| 🔊 **Dźwięki tablicy** | start, odliczanie, koniec czasu, wynik, fanfara — syntezowane, bez plików |
-| 🧮 **Przybornik matematyczny** | symbole Unicode (√ π ≤ ∑ ∫) i pełny **LaTeX renderowany przez KaTeX** |
-| 🖼️ **Zdjęcia i filmy w pytaniach** | JPG/PNG/GIF/WEBP, MP4/WEBM do 40 MB |
-| 📊 **Raport po grze** | PDF, Excel, CSV, HTML, JSON, TXT + automatyczny zapis |
-| ⬆️ **Automatyczna aktualizacja** | pasek z nową wersją i podmiana pliku jednym kliknięciem |
-| ✏️ **Edytor z ustawieniami** | czas, punkty, losowanie pytań i odpowiedzi, opóźnienia trybu auto |
-| 📤 **Quiz jako plik** | `.quiz` z osadzonymi mediami — jeden plik do wysłania koleżance z pracy |
-| 🌍 **Polski i angielski** | przełącznik wspólny dla panelu, edytora i tablicy |
-| 🎯 **Odporność na fałszywe odczyty** | ignoruje kody spoza listy klasy i wzory bez czarno-białego kontrastu |
-| 🖨️ **Karty do druku** | gotowy PDF jednym kliknięciem (także z `.exe`) |
-| 🏆 **Punktacja i ranking** | stała albo „za szybkość" — przełącznik w panelu |
-| 🔌 **Offline, bez kont i limitów** | serwer na czystej bibliotece Pythona (bez Flask) |
-| 🪟 **Jeden plik `.exe`** | pobierasz i klikasz, bez instalowania Pythona |
+| `QuizScanner-Windows-3.2.0.zip` | Windows 免安装包，含 EXE、使用说明、导入模板和许可证 |
+| `QuizScanner-Windows-3.2.0.exe` | 单独下载电脑程序 |
+| `QuizScanner-Android-2.0.0.apk` | 原生安卓教师端，支持 Android 6.0 及以上、ARM64/ARMv7 |
+| `QuizScanner-source-v3.2.0.zip` | 本版完整源码 |
+| `THIRD-PARTY-LICENSES.zip` | 随发行保留的第三方许可证 |
+| `SHA256SUMS.txt` | 下载文件的 SHA-256 校验值 |
 
-## 📦 Instalacja
+**电脑端与手机端应一起更新。** 本次为原生安卓首个公开版本，已完成构建、签名和本地运行检查；实际手机的横竖屏、镜头、识别距离、网络连接及延迟尚未完成真机验收。见 [验证记录](docs/VERIFICATION.md)。APK 沿用本地既有测试签名，与本项目原 1.0.9 APK 的应用标识、签名一致。
 
-| System | Co zrobić |
-|---|---|
-| **Windows** | Pobierz `QuizScanner-v….exe` z [Releases](https://github.com/PiotrKajor/QuizScanner/releases), przenieś na Pulpit, kliknij dwukrotnie. Bez Pythona, bez instalacji. |
-| **Linux / macOS** | `./scripts/install.sh`, potem `./start.sh` |
-| **Windows ze źródeł** | `scripts\install-windows.bat`, potem `Uruchom.bat` |
+## 快速开始
 
-Pełna instrukcja z zaporą, kamerą i rozwiązywaniem problemów:
-**[docs/INSTALACJA.md](docs/INSTALACJA.md)**. Najczęstsze pytania: **[docs/FAQ.md](docs/FAQ.md)**.
+1. 在电脑启动程序，点击启动服务，默认端口为 `8012`。
+2. 手机安装 APK，让手机与电脑连接同一网络。
+3. 电脑教师页点击顶部 **手机扫码连接**，选择手机可访问的电脑网络地址。
+4. 手机进入 **更多 → 扫一扫**，扫描二维码。APP 自动读取 IP、端口和配对码，随后同步班级与测验。
+5. 选择班级与测验，开始本题作答。学生将所选字母朝上举起答题卡，教师扫码收集答案。
 
-## 🚀 Szybki start (ze źródeł)
+电脑无法开启热点时，两台设备可连接同一路由器，或让电脑连接手机热点。二维码负责传递连接信息，两端仍需网络互通。电脑服务重启后请重新扫码配对。
 
-```bash
+教师面板 `http://localhost:8012/teacher` · 投影大屏 `/board` · 题目编辑器 `/editor`。改变端口后使用相应地址。
+
+## 本版功能
+
+- 原生 Compose Material 3 Expressive 页面，课堂、测验、更多三个入口；支持横向分页与手势切换。
+- CameraX 本地全屏预览、OpenCV ArUco 本地识别、可用后置镜头选择和点按对焦。
+- 默认以实际竖直方向判断选项，结合重力传感器与图像坐标变换补偿旋转；平放拍摄可切换屏幕上方模式。方向表现仍需真机验收。
+- 红色按钮结束作答、关闭摄像头并呈现选项人数和学生姓名；下一题自动开启扫码。
+- 电脑、手机和投影端使用统一切题命令；过期答案拒收、重复事件去重。
+- 先创建班级再导入 CSV/XLSX 名单，保留原学号并独立管理卡片号；开始后仅展示所选班级。
+- DOCX 提取四选一题目；阅读材料与子题分开保存，投影可独立查看材料。
+- 题干与选项支持重点标记，大屏预览复用真实投影布局；保留浅色中国风、深色及黑板主题。
+- 同题重答替换旧成绩，历次记录保留；按班级与场次生成报告，包含未扫码学生。
+- 电脑课堂快照自动保存、历史课堂恢复；手机缓存测验和名单，离线课堂补传为独立场次。
+- 支持 PDF、XLSX、CSV、HTML、JSON、TXT 报告和班级答题卡 PDF。
+
+现有 ArUco 答题卡继续沿用相同字典与边缘映射。连接二维码与学生答题卡是两种不同的识别入口。
+
+## 使用与开发
+
+- [完整中文使用说明](docs/USAGE.md)
+- [更新说明](CHANGELOG.md)
+- [构建与发布](docs/BUILD.md)
+- [原生安卓工程](android-app/README.md)
+- [验证记录与已知边界](docs/VERIFICATION.md)
+- [第三方依赖许可](THIRD_PARTY_NOTICES.md)
+- [原项目说明文档](docs/UPSTREAM-README.md)
+
+从源码启动电脑端：
+
+```shell
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
-python launcher.py              # okno startowe (wybór kamery i portu)
-python -m quizscanner --camera 0 --port 8000    # albo od razu serwer
+python launcher.py
+# 无桌面模式：python -m quizscanner --port 8012 --no-camera --no-browser
 ```
 
-1. **Przygotuj pytania** — otwórz **Edytor**, utwórz quiz (albo użyj gotowego
-   `Przykładowy quiz`). W zakładce **Uczniowie** wpisz klasę (ID = numer na karcie).
-2. **Wydrukuj karty** — Edytor → Uczniowie → **„📄 Pobierz karty (PDF)"**,
-   jedna karta na stronę A4.
-3. **Prowadź quiz** — w **Panelu nauczyciela**: Start pytania → uczniowie
-   podnoszą karty → Pokaż wynik → Następne. Na rzutniku wyświetl **Tablicę**.
-4. **Odbierz raport** — przycisk **„📊 Raport"**; komplet zapisuje się też sam
-   po ostatnim pytaniu.
+Windows 源码启动需要含 Tkinter 的 Python。安卓构建需要 JDK 17、Android SDK 36 与 Gradle 9.4.1。
 
-## 🖥️ Trzy widoki
+## 数据与贡献
 
-| Widok | Adres | Do czego |
-|---|---|---|
-| Panel nauczyciela | `http://localhost:8000/teacher` | podgląd kamery, sterowanie, wyniki na żywo, raport, ustawienia |
-| Tablica (rzutnik) | `http://localhost:8000/board` | duży ekran dla uczniów — pytanie, timer, rozkład, podium |
-| Edytor | `http://localhost:8000/editor` | quizy, przybornik matematyczny, lista uczniów |
+运行时的名单、学生答案、媒体、课堂快照及报告保存在本机 `data` 目录或应用私有存储中，不随源码上传。本仓库只含虚构的示例名单与示例测验。APK 卸载会清除本机缓存，升级时请优先覆盖安装。
 
-Tablicę można otworzyć **z innego urządzenia w tej samej sieci** (drugi komputer
-przy rzutniku, Smart TV) pod adresem `http://<IP-komputera>:8000/board` — dokładny
-adres pokazuje panel nauczyciela.
+欢迎通过 [本仓库 Issues](https://github.com/suoyikehahaha/QuizScanner/issues) 反馈问题。摄像头问题请附手机型号、安卓版本、横竖屏方向、复现步骤和去除真实学生信息的截图。提交代码前请阅读 [贡献说明](CONTRIBUTING.md)。
 
-## 🎛️ Sterowanie quizem
+## 许可证与致谢
 
-- **▶ Start pytania** — otwiera zbieranie odpowiedzi (rusza timer).
-- **✓ Pokaż wynik** — zamyka pytanie, pokazuje poprawną odpowiedź, nalicza punkty.
-- **◀ / ▶** — poprzednie / następne pytanie (po ostatnim pojawia się podium).
-- **⟲ Reset punktów** — nowa rozgrywka od zera.
-- **📊 Raport** — podsumowanie i pobranie w wybranym formacie.
-- **Punkty za szybkość** — wył. (domyślnie): każda poprawna odpowiedź warta tyle
-  samo; wł.: szybsza odpowiedź daje więcej.
-- **Tryb automatyczny** — quiz prowadzi się sam: czas → wynik → następne → ranking.
-- **Tylko uczniowie z listy** — ignoruje kody spoza klasy.
-- **Dźwięki tablicy**, **Automatyczny raport**, **Sprawdzaj aktualizacje** —
-  karta „Ustawienia aplikacji" w panelu.
-
-## 🧮 Wzory matematyczne
-
-Edytor daje dwie drogi — obie z jednego przybornika, z **podglądem na żywo**
-pokazującym, jak edytowane pole wygląda na tablicy.
-
-**1. Symbole Unicode** — sekcje: **podstawowe** (± × ÷ ≤ ≥ ≈), **potęgi
-i ułamki** (² ³ ⁿ √ ½ ⅓), **greka** (α β π Δ Σ), **zbiory i logika**
-(∈ ⊂ ∪ ∀ ⇒ ℝ), **geometria** (∠ ⊥ ∥ △ ≅), **analiza** (∑ ∏ ∫ ∂ lim).
-Zwykły tekst — wygląda tak samo wszędzie, także w raporcie i pliku `.quiz`.
-
-**2. LaTeX** — wzór zamykasz w dolarach, a renderuje go **KaTeX**:
-
-```
-Ile wynosi $\frac{1}{2} + \frac{1}{4}$ ?
-Pole koła: $\pi r^2$,  granica: $\lim_{x \to 0} \frac{\sin x}{x}$
-$$\begin{cases} x + y = 2 \\ x - y = 0 \end{cases}$$
-```
-
-Gotowe szablony w przyborniku: ułamek piętrowy, pierwiastek stopnia n, całka
-z granicami, suma, granica, symbol Newtona, wektor, układ równań, macierz.
-Podwójne dolary `$$…$$` dają wzór wyśrodkowany w osobnej linii.
-
-Szablony działają na zaznaczeniu — zaznacz `x+1`, kliknij `√( )` i wychodzi
-`√(x+1)` albo `$\sqrt{x+1}$`. Przyciski `x²` / `x₂` zamieniają zaznaczony
-fragment na indeks górny lub dolny.
-
-> **KaTeX jest w repozytorium** (`quizscanner/web/vendor/katex`, ok. 600 kB) —
-> nic nie pobiera się z internetu, aplikacja dalej działa w pełni offline.
-> W raportach (PDF, Excel, CSV, TXT) wzory zapisywane są tekstem:
-> `$\frac{1}{2}$` → `(1)/(2)`, `$\pi r^2$` → `π r²`. Pełny zapis LaTeX
-> zostaje w eksporcie JSON.
-
-## 📊 Raport po grze
-
-Raport zawiera ranking, skuteczność każdego ucznia, odpowiedź na każde pytanie
-(kolumny `P1`, `P2`, …), rozkład A/B/C/D oraz wskazanie najtrudniejszego pytania.
-
-| Format | Do czego |
-|---|---|
-| **PDF** | wydruk i teczka wychowawcy |
-| **XLSX** | dziennik, przeliczanie na oceny |
-| **CSV** | import gdzie indziej (średnik + BOM — Excel otwiera bez kreatora) |
-| **HTML** | podgląd w przeglądarce, wydruk przez Ctrl+P |
-| **JSON** | własne zestawienia i skrypty |
-| **TXT** | szybki podgląd, wklejenie do wiadomości |
-
-Po ostatnim pytaniu komplet HTML + CSV + JSON zapisuje się sam do
-`data/raporty/` (można wyłączyć przełącznikiem „Automatyczny raport").
-
-## 🎨 Motywy
-
-`Ciemny` (domyślny) · `Jasny` · `Ocean` · `Las` · `Zachód słońca` · `Cukierkowy`
-· `Wysoki kontrast`
-
-Wybór z listy w panelu lub edytorze działa od razu również na tablicy — także
-gdy tablica stoi na innym komputerze. Do jasnej sali najlepszy jest
-**Wysoki kontrast**.
-
-## ⬆️ Aktualizacje
-
-Program przy starcie pyta GitHuba o najnowsze wydanie. Gdy jest nowsze, u góry
-panelu pojawia się pasek — **„⬇ Zaktualizuj teraz"** pobiera nowy plik i podmienia
-go przy zamykaniu programu (Windows nie pozwala nadpisać działającego pliku).
-Wersję ze źródeł aktualizuje `git pull`. Sprawdzanie można wyłączyć — wtedy
-aplikacja nie wykonuje żadnych połączeń na zewnątrz.
-
-## 🗂️ Struktura projektu
-
-```
-QuizScanner/
-├── launcher.py            okno startowe (i punkt wejścia .exe)
-├── Uruchom.bat            dwuklik na Windows
-├── quizscanner/           kod aplikacji
-│   ├── server.py          serwer HTTP: panel, tablica, edytor, API, strumień kamery
-│   ├── session.py         stan sesji, fazy pytania, punktacja, ranking
-│   ├── camera.py          wątek kamery zasilający sesję
-│   ├── scanner.py         silnik QuizScanEngine (+ samodzielne demo)
-│   ├── aruco.py           słownik ArUco i mapowanie krawędź → odpowiedź
-│   ├── cards.py           generator kart PNG/PDF do druku
-│   ├── report.py          raport: dane + eksport (pdf/xlsx/csv/html/json/txt)
-│   ├── updater.py         sprawdzanie i pobieranie nowych wydań
-│   ├── paths.py           ścieżki zasobów i danych (źródła vs .exe)
-│   └── web/               interfejs: panel, tablica, edytor, motywy, dźwięki
-├── data/                  dane użytkownika: quizy, uczniowie, media, raporty
-├── docs/                  INSTALACJA.md, FAQ.md
-├── scripts/               install.sh, install-windows.bat, build_exe.ps1
-└── tools/                 selftest.py, kontrola polskich znaków
-```
-
-## 🔍 Jak to działa
-
-- Każda karta ma jeden marker ArUco o unikalnym ID = konkretny uczeń.
-- Krawędzie karty opisane są literami **A / B / C / D**.
-- Uczeń obraca kartę tak, aby wybrana litera była **u góry**.
-- Kamera w jednym kadrze wykrywa wielu uczniów, odczytuje ID i obrót → odpowiedź.
-- Odpowiedź jest potwierdzana po kilku zgodnych klatkach, więc obracanie karty
-  nie „miga".
-- Poprawna odpowiedź jest **ukryta na tablicy** do momentu „Pokaż wynik".
-
-**Dlaczego ArUco, a nie kody QR:** kody QR są większe, gorzej czytają się
-z daleka i pod kątem, a jeden kadr z wieloma kodami bywa zawodny. Markery
-ArUco/AprilTag zaprojektowano właśnie do wykrywania wielu znaczników naraz
-z pomiarem obrotu — to mechanizm, na którym opiera się Plickers.
-
-## ⚙️ Konfiguracja i wskazówki
-
-- **Kamera:** `--camera 1`, jeśli masz kilka. Na Windows używany jest szybki
-  backend DirectShow (kamera startuje w ~2 s).
-- **Zasięg:** marker ~8–10 cm czyta się z 4–6 m dobrą kamerą HD. Za mały marker
-  lub słabe światło = brak odczytu. Drukuj na **matowym** papierze.
-- **Liczba uczniów:** słownik `DICT_4X4_250` = do 250 ID. Więcej — zmień
-  `DICT_NAME` w `quizscanner/aruco.py` (np. `DICT_5X5_1000`) i wygeneruj karty od nowa.
-- **Stabilność odczytu:** parametr `stable_frames` w `quizscanner/camera.py`.
-- **AprilTag** (jeszcze większy zasięg): podmień słownik na `DICT_APRILTAG_36h11`.
-- **Karty z wiersza poleceń:** `python -m quizscanner.cards --names data/students.csv --out karty`
-
-## 🧪 Szybkie sprawdzenie, czy wszystko działa
-
-```bash
-python tools/selftest.py     # strony, API, karty PDF, przebieg quizu, wszystkie formaty raportu
-python tools/check_polish.py # kontrola polskich znaków w całym repozytorium
-```
-
-Pierwsze polecenie uruchamia aplikację bez kamery i przechodzi przez nią jak
-nauczyciel: otwiera trzy widoki, generuje karty PDF, rozgrywa cały quiz aż do
-podium i pobiera raport w każdym formacie. Kończy się napisem `SELFTEST OK`.
-Warto puścić po większej zmianie i przed zbudowaniem `.exe`.
-
-## 📄 Format quizu (JSON w `data/quizzes/`)
-
-```json
-{
-  "title": "Nazwa quizu",
-  "settings": { "default_time": 20, "default_points": 1000 },
-  "questions": [
-    {
-      "text": "Ile wynosi √144 ?",
-      "answers": ["10", "12", "14", "16"],
-      "correct": 1,
-      "time": 20,
-      "points": 1000
-    }
-  ]
-}
-```
-
-`correct` to indeks 0–3 (0=A, 1=B, 2=C, 3=D). Edytor zapisuje ten format
-automatycznie — ręczna edycja nie jest potrzebna.
-
-## 🧩 Integracja we własnym kodzie
-
-Silnik detekcji jest niezależny — możesz go użyć bez całej aplikacji:
-
-```python
-from quizscanner.scanner import QuizScanEngine
-import cv2
-
-engine = QuizScanEngine(stable_frames=6)
-cap = cv2.VideoCapture(0)
-ok, frame = cap.read()
-detections = engine.process(frame)   # [(id, 'A'/'B'/'C'/'D', rogi), ...]
-answers = engine.snapshot()          # {id_ucznia: 'A'/'B'/'C'/'D'}
-```
-
----
-
-<p align="center">
-  <sub>MIT · <a href="docs/FAQ.md">FAQ</a> ·
-  <a href="https://github.com/PiotrKajor/QuizScanner/issues">Zgłoś problem</a></sub>
-</p>
+原项目版权 `Copyright (c) 2026 Piotr Kajor`，许可证为 **[MIT](LICENSE)**。本衍生版本保留该声明；第三方依赖遵循各自许可证。感谢原作者提供 QuizScanner 的基础设计、答题卡识别与桌面测验实现。

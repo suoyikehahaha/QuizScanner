@@ -88,20 +88,23 @@ def marker_is_black_and_white(gray, corners, min_contrast=55):
     return float(light.mean() - dark.mean()) >= min_contrast
 
 
-def answer_from_corners(corners):
+def answer_from_corners(corners, up_vector=None):
     """
     Ustala odpowiedź na podstawie 4 rogów markera.
 
     corners: tablica (4, 2) lub (1, 4, 2) ze współrzędnymi rogów w obrazie.
-    Zwraca literę krawędzi, której środek leży najwyżej na obrazie
-    (najmniejsze y) -- czyli tej krawędzi, która uczeń obrócił do góry.
+    up_vector points toward the top of the scan's starting frame. On a phone,
+    the vector follows that direction when the device rotates during a question.
     """
     pts = np.asarray(corners, dtype=np.float32).reshape(4, 2)
     best_label = None
-    best_y = None
+    up = np.asarray(up_vector if up_vector is not None else (0, -1),
+                    dtype=np.float32).reshape(2)
+    best_projection = None
     for label, (i, j) in EDGE_CORNERS.items():
-        mid_y = (pts[i][1] + pts[j][1]) / 2.0
-        if best_y is None or mid_y < best_y:
-            best_y = mid_y
+        midpoint = (pts[i] + pts[j]) / 2.0
+        projection = float(np.dot(midpoint, up))
+        if best_projection is None or projection > best_projection:
+            best_projection = projection
             best_label = label
     return best_label

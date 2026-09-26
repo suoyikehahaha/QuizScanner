@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#faf8ff">
+  <title>QuizScanner 手机教师工作台</title>
+  <link rel="icon" href="/static/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/mobile.css">
+</head>
+<body data-mobile-view="classroom">
+  <header class="topbar">
+    <div class="brand"><img src="/static/logo.svg" alt="">QuizScanner <span>手机教师工作台</span></div>
+    <span id="destinationName" class="destination-name">课堂</span>
+  </header>
+
+<main id="main">
+    <h1 class="mobile-page-heading" data-mobile-view-section="library">测验</h1>
+    <section class="card quiz-card mobile-view-section" id="librarySection" data-mobile-view-section="library">
+      <div class="section-title">测验与题目</div>
+      <div class="quiz-row">
+        <select id="quizSelect" aria-label="选择测验"></select>
+        <button id="loadButton" class="button secondary">加载</button>
+      </div>
+      <div class="library-tabs" role="tablist" aria-label="测验列表">
+        <button id="libraryTab" class="active" role="tab" aria-selected="true">测验库</button>
+        <button id="recentTab" role="tab" aria-selected="false">最近使用</button>
+      </div>
+      <div id="libraryPanel" role="tabpanel"><div id="quizLibraryList" class="quiz-library-list"></div></div>
+      <div id="recentPanel" class="quiz-library-list hidden" role="tabpanel"></div>
+      <details id="mobileDocxTools" class="mobile-tool-disclosure">
+        <summary>更多导题方式：从 Word 导入</summary>
+        <div class="import-row">
+          <button id="chooseDocxButton" class="button secondary">上传 Word 选择题</button>
+          <a class="button link-button" href="/static/语文选择题导入模板.docx" download>下载语文模板</a>
+          <input id="docxFile" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+        </div>
+        <div id="docxPreview" class="docx-preview hidden">
+          <div class="preview-heading">
+            <div><strong id="docxTitle"></strong><div id="docxSummary" class="subtle"></div></div>
+            <button id="cancelDocxButton" class="button small secondary">取消</button>
+          </div>
+          <div id="docxQuestions" class="docx-questions"></div>
+          <button id="saveDocxButton" class="button start full-width">核对答案并导入测验</button>
+        </div>
+      </details>
+    </section>
+
+    <h1 class="mobile-page-heading" data-mobile-view-section="classroom">课堂</h1>
+    <section class="card question-card mobile-view-section" data-mobile-view-section="classroom">
+      <div class="question-meta">
+        <strong id="counter">尚未加载测验</strong>
+        <span id="phase" class="phase">等待中</span>
+      </div>
+      <div class="class-picker">
+        <label for="classSelect">当前作答班级</label>
+        <select id="classSelect" aria-label="选择当前作答班级"></select>
+      </div>
+      <label class="mobile-countdown"><input id="noCountdownToggle" type="checkbox"><span>本题不限时，由教师手动结束</span></label>
+      <h1 id="questionText">请先加载一份测验</h1>
+      <div id="answers" class="answers"></div>
+      <div class="stats">
+        <div><span>已作答</span><strong id="answered">0</strong></div>
+        <div><span>剩余时间</span><strong id="timeLeft">—</strong></div>
+        <div><span>识别画面</span><strong id="cameraStatus" class="camera-state">检查中</strong></div>
+      </div>
+      <div class="distribution"><span>本题选项分布</span><strong id="distribution">A 0　B 0　C 0　D 0</strong></div>
+      <div class="controls">
+        <button id="previousButton" class="button secondary">上一题</button>
+        <button id="startButton" class="button start">开始本题</button>
+        <button id="revealButton" class="button reveal">公布结果</button>
+        <button id="nextButton" class="button next">下一题并开始</button>
+        <button id="resumeScanButton" class="button start full-width hidden">返回全屏扫码</button>
+        <button id="resetButton" class="button danger full-width">清空得分并重来</button>
+      </div>
+      <p id="autoNotice" class="subtle hidden">自动模式正在运行，手动控制暂不可用。</p>
+    </section>
+
+    <h1 class="mobile-page-heading" data-mobile-view-section="more">更多</h1>
+    <section class="card mobile-view-section connection-tools-card" data-mobile-view-section="more">
+      <div class="section-title">连接与设备</div>
+      <div id="nativeAndroidTools" class="native-android-tools hidden">
+        <label for="computerAddress">电脑 QuizScanner 地址</label>
+        <div class="camera-row">
+          <input id="computerAddress" type="url" inputmode="url" autocomplete="url" placeholder="http://192.168.137.1:8012">
+          <button id="connectComputerButton" class="button start">连接电脑</button>
+        </div>
+        <div class="native-device-actions">
+          <button id="openWifiSettingsButton" class="button secondary">打开 Wi-Fi 设置</button>
+          <button id="nativeCameraButton" class="button secondary">开启本机摄像头扫码</button>
+        </div>
+        <label id="cameraLensLabel" for="cameraLensSelect" class="hidden">后置摄像头</label>
+        <select id="cameraLensSelect" class="hidden" aria-label="选择手机后置摄像头"></select>
+        <p id="nativeCameraStatus" class="subtle">连接电脑后，开始作答时手机会自动扫码。</p>
+      </div>
+      <div id="connectionStatus" class="notice" role="status">正在连接电脑上的 QuizScanner…</div>
+    </section>
+    <details class="card scan-card mobile-view-section more-tool-disclosure" data-mobile-view-section="more">
+      <summary>备用扫码方式</summary>
+      <p class="subtle">安卓 APK 使用“连接与设备”中的手机摄像头；普通浏览器可用 IP Webcam 视频流。</p>
+      <div class="camera-preview"><img id="scanPreview" src="/video_feed" alt="QuizScanner 识别画面" loading="lazy"></div>
+      <label for="cameraSource">IP Webcam 视频流地址</label>
+      <div class="camera-row">
+        <input id="cameraSource" type="url" inputmode="url" autocomplete="url" placeholder="http://192.168.1.50:8080/video">
+        <button id="connectCameraButton" class="button secondary">连接并扫码</button>
+      </div>
+      <div id="cameraMessage" class="notice" role="status">手机连接电脑热点或与电脑处于同一 Wi‑Fi。IP Webcam 通常使用手机显示的地址并加上 <code>/video</code>。</div>
+      <details>
+        <summary>安卓连接步骤</summary>
+        <ol>
+          <li>在“更多 → 连接与设备”中填写电脑地址并连接。</li>
+          <li>在“连接与设备”中开启本机摄像头，首次使用时允许摄像头权限；开始题目后也会自动开启。</li>
+          <li>把手机固定好，使画面覆盖学生答题卡；电脑端会实时识别并把结果显示在投影大屏和本页。</li>
+          <li>若从普通浏览器打开本页，可另用 IP Webcam，填写手机视频地址并点击“连接并扫码”。</li>
+        </ol>
+      </details>
+    </details>
+
+    <section class="card results-card mobile-view-section" id="resultsSection" data-mobile-view-section="classroom">
+      <div class="section-title">学生实时作答</div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>编号</th><th>姓名</th><th>答案</th><th>得分</th></tr></thead>
+          <tbody id="studentAnswers"><tr><td colspan="4" class="empty-row">尚未识别到答题卡</td></tr></tbody>
+        </table>
+      </div>
+      <div class="section-title ranking-title">当前排名</div>
+      <ol id="leaderboard" class="leaderboard"><li class="empty-row">暂无排名</li></ol>
+    </section>
+
+    <details class="card roster-card mobile-view-section more-tool-disclosure" id="studentsSection" data-mobile-view-section="more">
+      <summary>学生名单与答题卡</summary>
+      <p class="subtle">名单列使用“学号、姓名、班级”。系统按班级和学号自然排序；学号原样保留，答题卡内部标记号由系统在每个班内分配，每班最多 250 人。</p>
+      <input id="rosterFile" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+      <div class="roster-actions">
+        <button id="chooseRosterButton" class="button secondary">上传名单</button>
+        <button id="saveRosterButton" class="button secondary">保存名单</button>
+        <button id="cardsButton" class="button start">下载答题卡 PDF</button>
+        <a class="button link-button" href="/static/学生名单导入模板.csv" download>下载名单模板</a>
+      </div>
+      <div id="rosterMessage" class="notice" role="status">正在读取学生名单…</div>
+      <details>
+        <summary>查看名单</summary>
+        <ol id="rosterList" class="roster-list"></ol>
+      </details>
+    </details>
+
+    <details class="card settings-card mobile-view-section more-tool-disclosure" id="settingsSection" data-mobile-view-section="more">
+      <summary>课堂控制设置</summary>
+      <label class="toggle-row"><input id="autoToggle" type="checkbox"><span>自动公布结果并推进下一题</span></label>
+      <label class="toggle-row"><input id="speedToggle" type="checkbox"><span>答得越快，答对得分越高</span></label>
+      <label class="toggle-row"><input id="onlyKnownToggle" type="checkbox"><span>只识别名单内的学生卡片</span></label>
+      <label class="toggle-row"><input id="showStudentAnswersToggle" type="checkbox"><span>公布正确答案时，在大屏显示每名学生的答案</span></label>
+    </details>
+
+    <details class="card report-card mobile-view-section more-tool-disclosure" id="reportSection" data-mobile-view-section="more">
+      <summary>作答报告</summary>
+      <p class="subtle">完成测验后可在手机上下载报告。</p>
+      <div class="report-actions">
+        <a class="button secondary" href="/api/report?format=xlsx">Excel</a>
+        <a class="button secondary" href="/api/report?format=pdf">PDF</a>
+        <a class="button secondary" href="/api/report?format=csv">CSV</a>
+        <a class="button secondary" href="/api/report?format=html">网页</a>
+      </div>
+    </details>
+    <section class="card mobile-links mobile-view-section" data-mobile-view-section="more">
+      <div class="section-title">电脑上的完整备课页面</div>
+      <p class="subtle">试题编辑、完整名单整理和投影版式调整建议在电脑上完成。</p>
+      <div class="mobile-link-actions"><a class="button secondary" href="/editor">打开题目编辑器</a><a class="button link-button" href="/teacher">打开电脑教师页</a></div>
+    </section>
+  </main>
+
+  <nav id="homeNav" class="home-nav" aria-label="手机教师工作台导航">
+    <button class="active" data-view="classroom" aria-current="page">
+      <span class="home-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h5A1.5 1.5 0 0 1 12 5.5v5a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 4 10.5zm9 0A1.5 1.5 0 0 1 14.5 4h4A1.5 1.5 0 0 1 20 5.5v5a1.5 1.5 0 0 1-1.5 1.5h-4a1.5 1.5 0 0 1-1.5-1.5zm-9 9A1.5 1.5 0 0 1 5.5 13h5a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 4 18.5zm9 0a1.5 1.5 0 0 1 1.5-1.5h4a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a1.5 1.5 0 0 1-1.5-1.5z"/></svg></span><span>课堂</span>
+    </button>
+    <button data-view="library">
+      <span class="home-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v13a1 1 0 0 1-1 1H6a3 3 0 0 1-3-3V7a3 3 0 0 1 2-3zm1 2a1 1 0 0 0-1 1v10c0 .55.45 1 1 1h13V6zM8 9h8v1.7H8zm0 4h8v1.7H8z"/></svg></span><span>测验</span>
+    </button>
+    <button data-view="more">
+      <span class="home-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></span><span>更多</span>
+    </button>
+  </nav>
+
+  <section id="scanExperience" class="scan-experience hidden" aria-hidden="true" aria-label="全屏扫码工作台">
+    <div id="scanCameraStage" class="scan-camera-stage">
+      <div class="scan-camera-shade"></div>
+      <div id="scanCameraPrompt" class="scan-camera-prompt">等待手机摄像头画面<br><small>开始本题时自动启动扫码</small></div>
+      <div class="scan-frame"><i></i><i></i><i></i><i></i></div>
+    </div>
+
+    <header class="scan-topbar">
+      <button id="exitScanButton" class="scan-exit" aria-label="退出全屏扫码">‹</button>
+      <div class="scan-live-pill"><span></span>正在作答</div>
+      <div class="scan-counter"><strong id="scanAnswered">0</strong><span>/</span><span id="scanTotal">0</span></div>
+    </header>
+
+    <div class="scan-question-card">
+      <div><span id="scanClassName">当前班级</span><span class="scan-separator">·</span><span id="scanQuestionCounter">第 1 题</span></div>
+      <p id="scanQuestionText">正在加载题目…</p>
+      <span id="scanTimeLeft" class="scan-time-chip">不限时</span>
+    </div>
+
+    <section id="scanDrawer" class="scan-drawer open" aria-label="实时作答情况">
+      <button id="scanDrawerHandle" class="scan-drawer-handle" aria-label="收起或展开作答详情"><i></i></button>
+      <div class="scan-drawer-heading">
+        <div><small id="scanDrawerSubtitle">实时识别</small><strong id="scanDrawerTitle">选项分布</strong></div>
+        <strong id="scanDrawerCount">0 人已作答</strong>
+      </div>
+      <div id="scanGraphPanel" class="scan-graph-panel"></div>
+      <div id="scanStudentsPanel" class="scan-students-panel hidden"></div>
+      <label class="scan-reveal-toggle"><input id="scanShowAnswersToggle" type="checkbox"><span>公布正确答案时，在大屏显示每名学生的答案</span></label>
+      <div class="scan-session-actions">
+        <button id="scanEndButton" class="scan-end-button">结束作答</button>
+        <button id="scanNextButton" class="scan-next-button">下一题</button>
+      </div>
+    </section>
+
+    <nav class="scan-control-bar" aria-label="扫码视图切换">
+      <button id="scanGraphTab" class="scan-tab-button active" aria-pressed="true">
+        <span class="scan-tab-icon graph-icon"><i></i><i></i><i></i></span><span>图表</span>
+      </button>
+      <button id="scanCameraButton" class="scan-camera-button" aria-label="结束作答并查看结果" title="结束作答并查看结果"><span></span></button>
+      <button id="scanStudentsTab" class="scan-tab-button" aria-pressed="false">
+        <span class="scan-tab-icon students-icon"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>学生</span>
+      </button>
+    </nav>
+  </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/mobile.js"></script>
+</body>
+</html>

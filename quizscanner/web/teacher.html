@@ -15,13 +15,16 @@
     <span class="brand"><img class="brand-logo" src="/static/logo.svg" alt="">QuizScanner</span>
     <select id="quizSel"></select>
     <button class="btn-primary" id="loadBtn" data-i18n="t_load"></button>
+    <label class="class-select-wrap"><span data-i18n="t_class_label">作答班级</span><select id="classSel" aria-label="选择作答班级"></select></label>
     <button class="btn-ghost" id="editorBtn" data-i18n="t_editor"></button>
     <button class="btn-ghost" id="boardBtn" data-i18n="t_board"></button>
-    <div class="spacer"></div>
+    <button class="btn-ghost" id="mobileBtn" data-i18n="t_mobile_remote"></button>
+    <button class="btn-primary" id="pairPhoneBtn">手机扫码连接</button><div class="spacer"></div>
     <select id="themeSel" class="lang-sel" data-i18n-title="theme_label"></select>
     <select id="langSel" class="lang-sel" data-i18n-title="lang_label">
       <option value="pl">🇵🇱 Polski</option>
       <option value="en">🇬🇧 English</option>
+      <option value="zh">🇨🇳 简体中文</option>
     </select>
     <span class="lan-url" id="lanUrl">—</span>
     <button class="btn-primary" id="reportBtn" data-i18n="t_report"></button>
@@ -64,24 +67,9 @@
         </div>
       </div>
 
-      <!-- Ustawienia aplikacji: dźwięk, raporty, aktualizacje -->
+      <!-- Ustawienia aplikacji -->
       <div class="card">
         <h3 data-i18n="s_app_settings"></h3>
-
-        <div class="switch-row first">
-          <label class="switch">
-            <input type="checkbox" id="soundToggle"><span class="slider"></span>
-          </label>
-          <div>
-            <div class="lbl" data-i18n="t_sound_label"></div>
-            <div class="sub" data-i18n="t_sound_sub"></div>
-          </div>
-        </div>
-        <div class="vol-row">
-          <span class="sub" data-i18n="t_volume"></span>
-          <input type="range" id="volume" min="0" max="100" step="5">
-          <span class="sub" id="volVal">60%</span>
-        </div>
 
         <div class="switch-row">
           <label class="switch">
@@ -123,10 +111,39 @@
 
         <div class="controls">
           <button class="btn-ok" id="startBtn" data-i18n="t_start"></button>
+          <button class="btn-danger" id="endBtn">结束作答</button>
           <button class="btn-primary" id="revealBtn" data-i18n="t_reveal"></button>
           <button class="btn-ghost" id="prevBtn" data-i18n="t_prev"></button>
           <button class="btn-ghost" id="nextBtn" data-i18n="t_next"></button>
           <button class="btn-danger" id="resetBtn" data-i18n="t_reset"></button>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input type="checkbox" id="noCountdownToggle"><span class="slider"></span>
+          </label>
+          <div>
+            <div class="lbl">本题不设倒计时</div>
+            <div class="sub">开启后，教师点击“结束作答”才会结束本题</div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <label for="scanVisibilitySel" class="lbl">扫码后在大屏显示</label>
+          <select id="scanVisibilitySel" aria-label="扫码后在大屏显示">
+            <option value="status">仅显示“已扫描”</option>
+            <option value="answer">显示学生答案</option>
+          </select>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input type="checkbox" id="showStudentAnswersToggle"><span class="slider"></span>
+          </label>
+          <div>
+            <div class="lbl">公布正确答案时显示个人答案</div>
+            <div class="sub">关闭后，大屏仍显示正确答案和选项统计，但隐藏学生逐人作答内容</div>
+          </div>
         </div>
 
         <div class="switch-row">
@@ -178,6 +195,13 @@
     </div>
   </div>
 
+  <dialog id="phonePairDialog" style="border:0;border-radius:24px;padding:28px;max-width:520px;width:90vw">
+    <h2>手机扫码连接</h2><p>手机与电脑先连接同一网络，在原生 APP 的更多中选择扫一扫。</p>
+    <label>电脑网络地址 <select id="pairAddress" class="text"></select></label>
+    <img id="pairCodeImage" alt="手机连接二维码" style="display:block;width:300px;max-width:100%;margin:16px auto">
+    <p id="pairCodeText"></p><p>电脑重启后请重新扫码配对。地址不通时，可换另一张网卡地址。</p>
+    <button class="btn-primary" id="closePhonePair">关闭</button>
+  </dialog>
   <!-- Raport po grze -->
   <div class="modal hidden" id="reportModal">
     <div class="modal-box wide">
@@ -185,6 +209,9 @@
         <h2 data-i18n="r_title"></h2>
         <button class="btn-ghost" id="repClose" data-i18n="close"></button>
       </div>
+      <div class="meta-row"><label>课堂场次 <select id="reportSession" class="text"></select></label>
+      <label>班级 <select id="reportClass" class="text"></select></label>
+      <button class="btn-ghost" id="resumeSession">恢复此课堂</button></div>
       <div id="repBody"></div>
       <div class="rep-actions">
         <span class="field" data-i18n="r_download"></span>
@@ -195,6 +222,7 @@
     </div>
   </div>
 
+  <script src="/static/pairing.js"></script>
   <script src="/static/vendor/katex/katex.min.js"></script>
   <script src="/static/tex.js"></script>
   <script src="/static/i18n.js"></script>

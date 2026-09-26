@@ -22,6 +22,7 @@
     <select id="langSel" class="lang-sel">
       <option value="pl">🇵🇱 Polski</option>
       <option value="en">🇬🇧 English</option>
+      <option value="zh">🇨🇳 简体中文</option>
     </select>
     <button class="btn-ghost" id="toTeacher" data-i18n="e_to_teacher"></button>
   </div>
@@ -36,6 +37,9 @@
       <button class="btn-ghost" id="importBtn" style="width:100%" data-i18n="e_import_file"></button>
       <input type="file" id="importFile" accept=".quiz,.json,application/json" hidden>
       <p class="muted" data-i18n="e_file_hint"></p>
+      <button class="btn-ghost" id="importDocxBtn" style="width:100%; margin-top:8px" data-i18n="e_docx_import"></button>
+      <input type="file" id="importDocxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+      <p class="muted"><a href="/static/语文选择题导入模板.docx" download data-i18n="e_docx_template"></a><br><span data-i18n="e_docx_hint"></span></p>
     </div>
 
     <div class="main">
@@ -92,7 +96,19 @@
       <h3 data-i18n="e_tab_roster"></h3>
       <p class="muted" data-i18n="e_roster_hint"></p>
       <button class="btn-ok" id="saveRoster" style="width:100%" data-i18n="e_save_roster"></button>
+      <hr>
+      <h4 class="panel-h" data-i18n="e_class_manage"></h4>
+      <label class="field" for="newClassName" data-i18n="e_class_name"></label>
+      <input id="newClassName" class="text" type="text" maxlength="60" data-i18n-ph="e_class_name_ph" style="width:100%">
+      <button class="btn-ghost roster-upload" id="createClass" data-i18n="e_create_class"></button>
+      <p class="muted" data-i18n="e_create_class_hint"></p>
+      <label class="field" for="rosterClass" data-i18n="e_card_class"></label>
+      <select id="rosterClass" class="text" style="width:100%; margin-bottom:8px"></select>
       <button class="btn-ghost" id="addStudent" style="width:100%; margin-top:8px" data-i18n="e_add_student"></button>
+      <label class="btn-ghost roster-upload" for="rosterFile" data-i18n="e_upload_roster"></label>
+      <input id="rosterFile" class="hidden" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      <p class="muted" data-i18n="e_upload_hint"></p>
+      <a class="btn-ghost roster-upload" href="/static/学生名单导入模板.csv" download data-i18n="e_roster_template"></a>
       <hr>
       <button class="btn-primary" id="cardsBtn" style="width:100%" data-i18n="e_cards_pdf"></button>
       <p class="muted" data-i18n="e_cards_hint"></p>
@@ -101,8 +117,11 @@
       <div class="panel">
         <table class="roster-table">
           <thead><tr>
-            <th style="width:90px" data-i18n="e_col_id"></th>
-            <th data-i18n="e_col_name"></th><th style="width:60px"></th>
+            <th style="width:120px" data-i18n="e_col_id"></th>
+            <th style="width:150px" data-i18n="e_col_class"></th>
+            <th data-i18n="e_col_name"></th>
+            <th style="width:90px" data-i18n="e_col_card"></th>
+            <th style="width:60px"></th>
           </tr></thead>
           <tbody id="rosterBody"></tbody>
         </table>
@@ -112,6 +131,7 @@
 
   <input type="file" id="mediaFile" accept="image/*,video/mp4,video/webm" hidden>
   <div class="toast" id="toast"></div>
+  <script src="/static/pairing.js"></script>
   <script src="/static/vendor/katex/katex.min.js"></script>
   <script src="/static/tex.js"></script>
   <script src="/static/i18n.js"></script>

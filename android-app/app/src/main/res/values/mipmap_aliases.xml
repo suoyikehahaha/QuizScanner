@@ -1,0 +1,4 @@
+<resources>
+    <item name="ic_launcher" type="mipmap">@drawable/ic_launcher_vector</item>
+    <item name="ic_launcher_round" type="mipmap">@drawable/ic_launcher_vector</item>
+</resources>
