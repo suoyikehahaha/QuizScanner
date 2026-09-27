@@ -43,7 +43,7 @@ LETTERS = ["A", "B", "C", "D"]
 class QuizSession:
     def __init__(self):
         self.lock = threading.RLock()
-        self.quiz = {"title": "Brak wczytanego quizu", "questions": []}
+        self.quiz = {"title": "未加载测验试卷", "questions": []}
         self.quiz_name = None
         self.roster_data = normalise_roster({})
         self.active_class = ""

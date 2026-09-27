@@ -129,9 +129,9 @@ class CameraScanner(threading.Thread):
         phone_sequence = 0
         cap = None if phone_source else self._open()
         if phone_source:
-            self._store(_placeholder("等待手机摄像头画面"))
+            self._store(_placeholder("等待手机摄像头画面..."))
         if cap is not None and not cap.isOpened():
-            self._store(_placeholder(f"Brak obrazu ze źródła: {self.camera}"))
+            self._store(_placeholder(f"无法获取摄像头画面，请检查设备号: {self.camera}"))
 
         while self._running:
             if phone_source:
@@ -149,11 +149,11 @@ class CameraScanner(threading.Thread):
             if not ok:
                 self.camera_ok = False
                 self.live_count = 0
-                message = "Oczekiwanie na kamerę telefonu" if phone_source else "Brak sygnału z kamery"
+                message = "等待手机摄像头画面..." if phone_source else "未检测到摄像头信号（请检查摄像头连接）"
                 self._store(_placeholder(message))
                 time.sleep(0.1)
                 continue
-            self.camera_ok = True  # potwierdzenie po pierwszej udanej klatce
+            self.camera_ok = True
 
             phase = self.session.phase
             question_index = getattr(self.session, "attempt_id", None)
@@ -228,11 +228,11 @@ class CameraScanner(threading.Thread):
 
     def _banner(self, frame, phase, batch):
         label = {
-            PHASE_QUESTION: "ZBIERANIE ODPOWIEDZI",
-        }.get(phase, "PODGLĄD")
+            PHASE_QUESTION: "随堂作答中",
+        }.get(phase, "摄像头就绪")
         color = (60, 200, 90) if phase == PHASE_QUESTION else (180, 180, 180)
         cv2.rectangle(frame, (0, 0), (frame.shape[1], 38), (25, 25, 25), -1)
-        batch.add(f"{label}   |   wykryto kart: {self.live_count}",
+        batch.add(f"{label}   |   已识别答题卡: {self.live_count} 张",
                   (12, 8), size=22, color=color)
 
     def _store(self, frame):

@@ -191,12 +191,17 @@ def save_roster(roster):
 
 
 def placeholder_jpeg(text):
-    """Statyczny kadr JPEG (gdy nie ma kamery)."""
+    """静态占位帧 JPEG（无摄像头或等待画面，支持中文）"""
     import io
     from PIL import Image, ImageDraw
+    from .cards import get_font
     img = Image.new("RGB", (640, 360), (34, 34, 40))
     d = ImageDraw.Draw(img)
-    d.text((210, 168), text, fill=(200, 200, 200))
+    font = get_font(24)
+    bbox = d.textbbox((0, 0), text, font=font)
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+    d.text(((640 - tw) // 2, (360 - th) // 2), text, font=font, fill=(210, 210, 210))
     buf = io.BytesIO()
     img.save(buf, "JPEG")
     return buf.getvalue()
@@ -474,8 +479,8 @@ class Handler(BaseHTTPRequestHandler):
     # ---- MJPEG ----
     def stream_mjpeg(self):
         if scanner is None:
-            # Tryb bez kamery -- pojedynczy statyczny kadr zastępczy.
-            jpg = placeholder_jpeg("Tryb bez kamery")
+            # 无摄像头模式 -- 发送单张静态中文占位帧
+            jpg = placeholder_jpeg("无摄像头模式")
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")
             self.send_header("Content-Length", str(len(jpg)))
@@ -684,7 +689,7 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 return self.send_json(read_quiz(name))
             except FileNotFoundError:
-                return self.send_error(404, "Brak quizu")
+                return self.send_error(404, "未找到该测验试卷")
         if path == "/api/roster":
             return self.send_json(load_roster())
         if path == "/api/settings":
@@ -697,7 +702,7 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 quiz = read_quiz(name)
             except FileNotFoundError:
-                return self.send_error(404, "Brak quizu")
+                return self.send_error(404, "未找到该测验试卷")
             body = export_quiz_bundle(quiz).encode("utf-8")
             fname = safe_name(name) + ".quiz"
             self.send_response(200)
@@ -788,7 +793,7 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError:
                 length = 0
             if length > 5 * 1024 * 1024:
-                return self.send_error(413, "Plik listy uczniów jest za duży")
+                return self.send_error(413, "学生花名册文件过大（超过 5MB）")
         data = self.read_json_body()
         if path in ("/api/roster", "/api/roster/class", "/api/roster/class/create") and session.phase == "question":
             return self.send_json({"ok": False, "error": "请先结束作答，再修改或切换班级名单。"}, code=409)
@@ -886,7 +891,7 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 quiz = read_quiz(name)
             except FileNotFoundError:
-                return self.send_error(404, "Brak quizu")
+                return self.send_error(404, "未找到该测验试卷")
             session.load_quiz(quiz, safe_name(name))
             return self.send_json({"ok": True, "state": session.state(full=True)})
 

@@ -127,7 +127,7 @@ def apply(status=None):
     """
     info = status or check(force=True)
     if not info.get("update") or not info.get("asset"):
-        return {"ok": False, "error": "brak aktualizacji"}
+        return {"ok": False, "error": "暂无新版本"}
     if not frozen():
         # Ze źródeł nie podmieniamy plików -- to zadanie dla gita.
         return {"ok": False, "error": "source", "url": info["url"]}
