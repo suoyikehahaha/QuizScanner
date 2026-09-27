@@ -1,9 +1,9 @@
 @echo off
 chcp 65001 >nul
-title QuizScanner 课堂答题系统
+title QuizScanner 课堂答题系统（公众号“蓑衣微言”修改）
 
 echo ===================================================
-echo           QuizScanner 课堂智能答题系统
+echo     QuizScanner 课堂答题系统（公众号“蓑衣微言”修改）
 echo ===================================================
 echo 正在检查 Python 运行环境并启动服务...
 

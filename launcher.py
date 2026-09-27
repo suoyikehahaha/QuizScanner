@@ -37,7 +37,7 @@ class Launcher:
         self.external_server = False
         self.external_port = None
 
-        root.title("QuizScanner 课堂答题系统")
+        root.title("QuizScanner 课堂答题系统（公众号“蓑衣微言”修改）")
         try:
             root.iconbitmap(ICON_ICO)
         except Exception:
@@ -58,7 +58,7 @@ class Launcher:
         ).pack()
 
         tk.Label(
-            header_frame, text=f"随堂测验 · 纸质答题卡极速扫码 · v{VERSION}",
+            header_frame, text=f"随堂测验 · 纸质答题卡极速扫码 · 公众号“蓑衣微言”修改 · v{VERSION}",
             font=("Microsoft YaHei UI", 9),
             fg="#8c97b2", bg="#121620"
         ).pack(pady=(3, 0))
