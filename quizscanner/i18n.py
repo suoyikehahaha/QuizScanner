@@ -1,8 +1,6 @@
 """
-Teksty aplikacji po stronie Pythona (karty do druku, eksport wyników).
-
-Interfejs webowy ma własny słownik w web/i18n.js -- tutaj są tylko napisy,
-które powstają w Pythonie. Domyślny język: uproszczony chiński.
+QuizScanner Python 后端本地化字典（用于 A4 答题卡打印与成绩报告导出）。
+默认语言：简体中文 (zh)。
 """
 
 DEFAULT_LANG = "zh"
@@ -31,20 +29,20 @@ STRINGS = {
         "results_correct": "correct",
     },
     "zh": {
-        "card_hint": "将所选选项转到朝上位置并举起答题卡",
+        "card_hint": "请将所选选项字母（A/B/C/D）转到朝上位置并举起答题卡",
         "card_student": "学生",
         "results_place": "名次",
-        "results_id": "编号",
+        "results_id": "学号/卡号",
         "results_name": "姓名",
         "results_points": "得分",
-        "results_answer": "答案",
-        "results_question": "题目",
+        "results_answer": "所选答案",
+        "results_question": "题号",
         "results_correct": "正确答案",
     },
 }
 
 
 def t(key, lang=DEFAULT_LANG):
-    """Returns a localized Python-generated string, falling back to Chinese."""
+    """获取本地化翻译文本，默认回退至简体中文。"""
     table = STRINGS.get(lang) or STRINGS[DEFAULT_LANG]
     return table.get(key) or STRINGS[DEFAULT_LANG].get(key, key)

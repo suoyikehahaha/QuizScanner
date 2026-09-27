@@ -1,23 +1,79 @@
-/* Motywy kolorystyczne QuizScanner.
-   Każdy motyw definiuje ten sam komplet zmiennych, więc panel, edytor i
-   tablica przebierają się jednym atrybutem na <html>:
+/* QuizScanner 现代教学主题色彩系统
+   为教室投影仪、智能触控黑板（希沃/鸿合）、LED 教学屏量身打造。
+   默认主题为 chalkboard（现代墨绿黑板风），彻底消除传统投影的强光眩光与眼疲劳。
+*/
 
-       <html data-theme="ocean">
+:root { --on-accent: #ffffff; }
 
-   Grupy zmiennych:
-     --accent*        sygnatura (przyciski, akcenty, pasek czasu)
-     --ink*           powierzchnie tablicy i pasków nagłówka
-     --paper/--card   tło i karty panelu oraz edytora
-     --a/--b/--c/--d  kolory odpowiedzi A/B/C/D
-   Domyślnym motywem jest ciemny (patrz :root poniżej) — także zanim
-   JavaScript zdąży odczytać ustawienia z serwera. */
-
-:root { --on-accent: #fff; }   /* tekst na tle akcentu */
-
+/* 1. 默认与护眼首选：现代墨绿黑板风 (Modern Slate Chalkboard) */
 :root,
+:root[data-theme="chalkboard"] {
+  color-scheme: dark;
+  --accent: #38a169; --accent-2: #48bb78; --accent-soft: rgba(56, 161, 105, 0.22);
+
+  --ink: #14221b; --ink-2: #182a22; --ink-3: #21382e;
+  --ink-line: #2d4a3d; --ink-text: #f2f6f4; --ink-muted: #8da698;
+  --board-glow: #1b3328;
+
+  --paper: #0e1813; --card: #192d24; --line: #2b4539;
+  --field: #121e18; --text: #edf3f0; --muted: #8da698; --toggle-off: #2a4437;
+
+  --a: #f6ad55; --b: #4fd1c5; --c: #b794f4; --d: #68d391;
+  --ok: #48bb78; --bad: #e53e3e;
+}
+
+/* 2. 现代温润米柔纸风 (Eye-Care Warm Paper) - 模拟高级无反光宣纸/护眼书写纸 */
+:root[data-theme="warm_paper"] {
+  color-scheme: light;
+  --accent: #b83232; --accent-2: #d32f2f; --accent-soft: #fceded;
+
+  --ink: #f7f4ec; --ink-2: #fbf9f4; --ink-3: #ede9de;
+  --ink-line: #d8d2c2; --ink-text: #232729; --ink-muted: #697175;
+  --board-glow: #ffffff;
+
+  --paper: #f4f0e6; --card: #ffffff; --line: #dfd9c9;
+  --field: #ffffff; --text: #232729; --muted: #697175; --toggle-off: #c8c2b0;
+
+  --a: #c05621; --b: #2b6cb0; --c: #6b46c1; --d: #2f855a;
+  --ok: #2f855a; --bad: #c53030;
+}
+
+/* 3. 深空极简学术蓝 (Modern Academic Indigo) - 适用于智慧多媒体与大尺寸 LED 屏 */
+:root[data-theme="ocean"] {
+  color-scheme: dark;
+  --accent: #3182ce; --accent-2: #63b3ed; --accent-soft: rgba(49, 130, 206, 0.22);
+
+  --ink: #0b1220; --ink-2: #111b2e; --ink-3: #182640;
+  --ink-line: #233758; --ink-text: #f0f4fc; --ink-muted: #8497ba;
+  --board-glow: #152238;
+
+  --paper: #080d17; --card: #101a2b; --line: #20314d;
+  --field: #0c1322; --text: #edf2fa; --muted: #8497ba; --toggle-off: #243654;
+
+  --a: #ecc94b; --b: #38b2ac; --c: #9f7aea; --d: #48bb78;
+  --ok: #48bb78; --bad: #f56565;
+}
+
+/* 4. 现代云砚墨韵风 (Scholarly Ink & Seal) - 契合蓑衣客文人雅韵 */
+:root[data-theme="ink"] {
+  color-scheme: dark;
+  --accent: #c53030; --accent-2: #e53e3e; --accent-soft: rgba(197, 48, 48, 0.22);
+
+  --ink: #1a1a1c; --ink-2: #242428; --ink-3: #2f2f35;
+  --ink-line: #3d3d45; --ink-text: #f5f5f7; --ink-muted: #9a9aa5;
+  --board-glow: #27272d;
+
+  --paper: #141416; --card: #222226; --line: #383840;
+  --field: #18181a; --text: #f3f3f5; --muted: #9a9aa5; --toggle-off: #3a3a44;
+
+  --a: #d69e2e; --b: #319795; --c: #805ad5; --d: #38a169;
+  --ok: #38a169; --bad: #e53e3e;
+}
+
+/* 5. 经典极简深色 (Classic Dark) */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --accent: #e2603f; --accent-2: #f07a5a; --accent-soft: #34212166;
+  --accent: #e2603f; --accent-2: #f07a5a; --accent-soft: rgba(226, 96, 63, 0.22);
 
   --ink: #14161f; --ink-2: #1b1e2b; --ink-3: #242938;
   --ink-line: #313749; --ink-text: #eef0f6; --ink-muted: #8b91a4;
@@ -30,6 +86,7 @@
   --ok: #4faa6a; --bad: #d9573d;
 }
 
+/* 6. 经典浅色 (Classic Light) */
 :root[data-theme="light"] {
   color-scheme: light;
   --accent: #e2603f; --accent-2: #c44e30; --accent-soft: #fbe9e3;
@@ -45,74 +102,10 @@
   --ok: #4faa6a; --bad: #d9573d;
 }
 
-/* Ocean — granat i turkus, chłodny motyw na rzutnik w jasnej sali. */
-:root[data-theme="ocean"] {
-  color-scheme: dark;
-  --accent: #33b0d6; --accent-2: #6fd3f2; --accent-soft: #14313f;
-
-  --ink: #0a1622; --ink-2: #10202f; --ink-3: #17293b;
-  --ink-line: #21384c; --ink-text: #e6f3fa; --ink-muted: #7d9ab0;
-  --board-glow: #123449;
-
-  --paper: #071018; --card: #0f1d28; --line: #1d3245;
-  --field: #0a1721; --text: #e2eef6; --muted: #7d9ab0; --toggle-off: #2a4257;
-
-  --a: #f0b24a; --b: #35c1c8; --c: #7f9df5; --d: #46bd8c;
-  --ok: #46bd8c; --bad: #e2654f;
-}
-
-/* Las — głęboka zieleń z limonkowym akcentem. */
-:root[data-theme="forest"] {
-  color-scheme: dark;
-  --accent: #7fc243; --accent-2: #a3dd6d; --accent-soft: #1e2c17;
-
-  --ink: #101710; --ink-2: #172117; --ink-3: #1f2c1e;
-  --ink-line: #2b3a29; --ink-text: #eaf3e6; --ink-muted: #8ba184;
-  --board-glow: #1d2f1c;
-
-  --paper: #0c120c; --card: #151d14; --line: #263424;
-  --field: #101710; --text: #e6efe3; --muted: #8ba184; --toggle-off: #33452f;
-
-  --a: #e0a83a; --b: #3fb0a6; --c: #9b8bf0; --d: #6cc258;
-  --ok: #6cc258; --bad: #d9603f;
-}
-
-/* Zachód słońca — śliwka i koral, ciepły motyw wieczorny. */
-:root[data-theme="sunset"] {
-  color-scheme: dark;
-  --accent: #ff7a59; --accent-2: #ffa07f; --accent-soft: #3a1e28;
-
-  --ink: #1a1020; --ink-2: #23172d; --ink-3: #2e1f3a;
-  --ink-line: #3d2a4a; --ink-text: #f7ecf5; --ink-muted: #a891b3;
-  --board-glow: #34203f;
-
-  --paper: #150c1a; --card: #1f1428; --line: #33223f;
-  --field: #180e1e; --text: #f3e8f2; --muted: #a891b3; --toggle-off: #46304f;
-
-  --a: #ffb648; --b: #4fb8c9; --c: #b98cf5; --d: #58c78c;
-  --ok: #58c78c; --bad: #ef5f5f;
-}
-
-/* Cukierkowy — jasny, wysokonasycony motyw dla młodszych klas. */
-:root[data-theme="candy"] {
-  color-scheme: light;
-  --accent: #e0399b; --accent-2: #b32a7b; --accent-soft: #ffe4f3;
-
-  --ink: #2a1030; --ink-2: #3a1742; --ink-3: #4a2154;
-  --ink-line: #5c2f66; --ink-text: #fdeaf7; --ink-muted: #c79ad0;
-  --board-glow: #4a1c55;
-
-  --paper: #fff5fb; --card: #ffffff; --line: #f2d8e8;
-  --field: #ffffff; --text: #35243a; --muted: #997a9e; --toggle-off: #e2c4d8;
-
-  --a: #f5a623; --b: #29b6c9; --c: #8c5cf0; --d: #3fbf7a;
-  --ok: #3fbf7a; --bad: #e0455f;
-}
-
-/* Wysoki kontrast — czerń i żółć, do sal z mocno oświetlonym ekranem. */
+/* 7. 高对比度 (High Contrast) */
 :root[data-theme="contrast"] {
   color-scheme: dark;
-  --on-accent: #000;   /* żółty akcent wymaga czarnego napisu */
+  --on-accent: #000000;
   --accent: #ffd400; --accent-2: #ffe552; --accent-soft: #332c00;
 
   --ink: #000000; --ink-2: #0d0d0d; --ink-3: #1a1a1a;
@@ -126,7 +119,7 @@
   --ok: #6dff5e; --bad: #ff5c4d;
 }
 
-/* Przyciski „ghost" muszą być czytelne w obu rodzajach motywów. */
+/* 按钮通用适配 */
 .btn-ghost { background: var(--ink-3); color: var(--ink-text); }
+:root[data-theme="warm_paper"] .btn-ghost,
 :root[data-theme="light"] .btn-ghost { background: #ece8df; color: #3a3f4b; }
-:root[data-theme="candy"] .btn-ghost { background: #f7e2ee; color: #5b2a4c; }

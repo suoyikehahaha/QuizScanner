@@ -10,9 +10,10 @@ const I18N = {
     yes: "Tak", no: "Nie",
     save: "Zapisz", cancel: "Anuluj", delete: "Usuń", close: "Zamknij",
     theme_label: "Motyw kolorystyczny",
-    theme_dark: "🌙 Ciemny", theme_light: "☀️ Jasny", theme_ocean: "🌊 Ocean",
-    theme_forest: "🌲 Las", theme_sunset: "🌅 Zachód słońca",
-    theme_candy: "🍬 Cukierkowy", theme_contrast: "◐ Wysoki kontrast",
+    theme_chalkboard: "🟢 Tablica kredowa", theme_warm_paper: "📜 Ciepły papier",
+    theme_ocean: "🌌 Kosmiczny błękit", theme_ink: "🖋️ Tusz i pieczęć",
+    theme_dark: "🌙 Ciemny", theme_light: "☀️ Jasny", theme_contrast: "◐ Wysoki kontrast",
+    theme_candy: "🍬 Cukierkowy", theme_forest: "🌲 Las", theme_sunset: "🌅 Zachód słońca",
 
     // --- panel nauczyciela ---
     t_load: "Wczytaj",
@@ -252,9 +253,10 @@ const I18N = {
     yes: "Yes", no: "No",
     save: "Save", cancel: "Cancel", delete: "Delete", close: "Close",
     theme_label: "Colour theme",
-    theme_dark: "🌙 Dark", theme_light: "☀️ Light", theme_ocean: "🌊 Ocean",
-    theme_forest: "🌲 Forest", theme_sunset: "🌅 Sunset",
-    theme_candy: "🍬 Candy", theme_contrast: "◐ High contrast",
+    theme_chalkboard: "🟢 Eye-Care Chalkboard", theme_warm_paper: "📜 Warm Eye-Care Paper",
+    theme_ocean: "🌌 Deep Space Indigo", theme_ink: "🖋️ Scholarly Ink & Seal",
+    theme_dark: "🌙 Dark Minimal", theme_light: "☀️ Light Minimal", theme_contrast: "◐ High Contrast",
+    theme_candy: "🍬 Candy", theme_forest: "🌲 Forest", theme_sunset: "🌅 Sunset",
 
     t_load: "Load",
     t_class_label: "Class",
@@ -485,10 +487,11 @@ const I18N = {
     lang_label: "界面语言",
     yes: "是", no: "否",
     save: "保存", cancel: "取消", delete: "删除", close: "关闭",
-    theme_label: "颜色主题",
-    theme_dark: "🌙 深色", theme_light: "☀️ 浅色", theme_ocean: "🌊 海洋",
-    theme_forest: "🌲 森林", theme_sunset: "🌅 日落",
-    theme_candy: "🍬 糖果", theme_contrast: "◐ 高对比度",
+    theme_label: "课堂大屏主题",
+    theme_chalkboard: "🟢 护眼墨绿黑板（推荐）", theme_warm_paper: "📜 现代温润米纸（护眼）",
+    theme_ocean: "🌌 深空学术蓝（多媒体大屏）", theme_ink: "🖋️ 现代云砚墨韵（国风）",
+    theme_dark: "🌙 极简深色", theme_light: "☀️ 简约明亮", theme_contrast: "◐ 高对比度",
+    theme_candy: "🍬 糖果", theme_forest: "🌲 森林", theme_sunset: "🌅 日落",
 
     t_load: "加载",
     t_class_label: "作答班级",
@@ -747,10 +750,10 @@ function applyI18n(root) {
 
 // ---------- motyw kolorystyczny ----------
 // Nazwy muszą zgadzać się z selektorami [data-theme] w themes.css.
-const THEMES = ["dark", "light", "ocean", "forest", "sunset", "candy", "contrast"];
+const THEMES = ["chalkboard", "warm_paper", "ocean", "ink", "dark", "light", "contrast"];
 
 function setTheme(name) {
-  const theme = THEMES.includes(name) ? name : "dark";
+  const theme = THEMES.includes(name) ? name : "chalkboard";
   if (document.documentElement.dataset.theme !== theme)
     document.documentElement.dataset.theme = theme;
 }

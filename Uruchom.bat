@@ -1,4 +1,4 @@
 @echo off
-rem Uruchamia launcher QuizScanner (okno z przyciskami).
+chcp 65001 >nul
 cd /d "%~dp0"
-start "" pythonw launcher.py
+call "启动课堂.bat"
